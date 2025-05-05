@@ -1,0 +1,11 @@
+{
+  "gestures": [
+    {
+      "inputs": ["RIGHT", "DOWN"],
+      "action": {
+        "name": "bookmark",
+        "args": []
+      }
+    }
+  ]
+}

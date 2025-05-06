@@ -6,6 +6,12 @@
 - Implement Test-Driven Development (TDD)
 - Write comments in English only, not in Japanese
 - Place test files in the same directory as the implementation files: `{name}.spec.(ts|tsx)`
+- Execute only one task per request
+- Run `npm run for_agent` before committing and resolve any errors
+- Always request human confirmation before completing a task
+- Avoid using mocks in tests whenever possible
+- Avoid using `let` declarations whenever possible
+- Avoid using try-catch blocks
 
 ## When making git commits, please follow these practices:
 

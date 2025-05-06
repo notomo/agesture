@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "format": "biome check --write --formatter-enabled=true --organize-imports-enabled=true --unsafe",
     "check": "biome check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "for_agent": "bash ./tool/run.sh check && bash ./tool/run.sh test"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

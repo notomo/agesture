@@ -9,9 +9,11 @@
 - Execute only one task per request
 - Run `npm run for_agent` before committing and resolve any errors
 - Always request human confirmation before completing a task
-- Avoid using mocks in tests whenever possible
+- Avoid using mocks in tests
 - Avoid using `let` declarations whenever possible
-- Avoid using try-catch blocks
+- Never using try-catch blocks
+- Never using `any` type
+- Never ignore TypeScript type errors
 
 ## When making git commits, please follow these practices:
 

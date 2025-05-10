@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const container = document.getElementById("app");
@@ -12,9 +12,82 @@ createRoot(container).render(
 );
 
 function App() {
+  const [settingsJson, setSettingsJson] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    // Load current settings when component mounts
+    async function loadSettings() {
+      const result = await browser.storage.sync.get("gestureSettings");
+      if (result["gestureSettings"]) {
+        setSettingsJson(JSON.stringify(result["gestureSettings"], null, 2));
+      }
+    }
+
+    loadSettings();
+  }, []);
+
+  const handleSaveSettings = async () => {
+    const settings = JSON.parse(settingsJson);
+    await browser.storage.sync.set({ gestureSettings: settings });
+    setIsError(false);
+    setStatusMessage("Settings saved successfully");
+  };
+
   return (
-    <div>
-      <p>This is React.</p>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Gesture Settings</h1>
+
+      <div className="mb-4">
+        <label htmlFor="settings-json" className="block font-medium mb-2">
+          Settings JSON
+        </label>
+        <textarea
+          id="settings-json"
+          className="w-full h-64 p-2 border rounded font-mono"
+          value={settingsJson}
+          onChange={(e) => setSettingsJson(e.target.value)}
+          placeholder='{"gestures": [{"inputs": ["RIGHT", "DOWN"], "action": {"name": "bookmark", "args": []}}]}'
+        />
+      </div>
+
+      {statusMessage && (
+        <div
+          className={`p-2 mb-4 rounded ${
+            isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+          }`}
+        >
+          {statusMessage}
+        </div>
+      )}
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleSaveSettings}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Save Settings
+        </button>
+      </div>
+
+      <div className="mt-8 p-4 bg-gray-100 rounded">
+        <h2 className="text-xl font-bold mb-2">Example Settings</h2>
+        <pre className="font-mono text-sm">
+          {`{
+  "gestures": [
+    {
+      "inputs": ["RIGHT", "DOWN"],
+      "action": {
+        "name": "bookmark",
+        "args": []
+      }
+    }
+  ]
+}`}
+        </pre>
+      </div>
     </div>
   );
 }

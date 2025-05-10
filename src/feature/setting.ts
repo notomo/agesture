@@ -1,30 +1,67 @@
+import {
+  type InferOutput,
+  array,
+  literal,
+  object,
+  parseJson,
+  pipe,
+  safeParse,
+  string,
+  union,
+  unknown,
+} from "valibot";
 /**
  * Module for managing gesture settings
  */
 import type { Direction } from "./direction";
 
 /**
- * Interface for gesture action
+ * Schema for gesture action
  */
-export interface GestureAction {
-  name: string;
-  args: unknown[];
-}
+export const GestureActionSchema = object({
+  name: string(),
+  args: array(unknown()),
+});
 
 /**
- * Interface for gesture configuration
+ * Type for gesture action
  */
-export interface Gesture {
-  inputs: Direction[];
-  action: GestureAction;
-}
+export type GestureAction = InferOutput<typeof GestureActionSchema>;
 
 /**
- * Interface for settings
+ * Schema for direction
  */
-export interface Settings {
-  gestures: Gesture[];
-}
+export const DirectionSchema = union([
+  literal("UP"),
+  literal("DOWN"),
+  literal("LEFT"),
+  literal("RIGHT"),
+]);
+
+/**
+ * Schema for gesture configuration
+ */
+export const GestureSchema = object({
+  inputs: array(DirectionSchema),
+  action: GestureActionSchema,
+});
+
+/**
+ * Type for gesture configuration
+ */
+export type Gesture = InferOutput<typeof GestureSchema>;
+
+/**
+ * Schema for settings
+ */
+export const SettingsSchema = object({
+  gestures: array(GestureSchema),
+});
+
+/**
+ * Type for settings
+ */
+export type Settings = InferOutput<typeof SettingsSchema>;
 
 /**
  * Default settings
@@ -43,7 +80,17 @@ const STORAGE_KEY = "gestureSettings";
  */
 export async function getSettings(): Promise<Settings> {
   const result = await browser.storage.sync.get(STORAGE_KEY);
-  return (result[STORAGE_KEY] as Settings | undefined) || DEFAULT_SETTINGS;
+  const rawSettings = result[STORAGE_KEY] || DEFAULT_SETTINGS;
+
+  // Parse and validate the settings using the defined schema with safeParse
+  const parseResult = safeParse(SettingsSchema, rawSettings);
+
+  if (parseResult.success) {
+    return parseResult.output;
+  }
+  console.error("Invalid settings format in storage:", parseResult.issues);
+  // Return default settings if stored settings are invalid
+  return DEFAULT_SETTINGS;
 }
 
 /**
@@ -125,30 +172,18 @@ export async function clearAllGestures(): Promise<Settings> {
 export async function importSettingsFromJson(
   jsonString: string,
 ): Promise<Settings> {
-  const parsed = JSON.parse(jsonString);
+  const parseResult = safeParse(
+    pipe(string(), parseJson(), SettingsSchema),
+    jsonString,
+  );
 
-  // Validate the parsed object has the expected structure
-  if (!parsed || !Array.isArray(parsed.gestures)) {
-    throw new Error("Invalid settings format");
+  if (parseResult.success) {
+    // Save the validated settings
+    await saveSettings(parseResult.output);
+    return parseResult.output;
   }
-
-  // Validate each gesture has the correct structure
-  for (const gesture of parsed.gestures) {
-    if (
-      !gesture ||
-      typeof gesture !== "object" ||
-      !Array.isArray((gesture as Gesture).inputs) ||
-      !(gesture as Gesture).action ||
-      typeof (gesture as Gesture).action !== "object" ||
-      typeof (gesture as Gesture).action.name !== "string" ||
-      !Array.isArray((gesture as Gesture).action.args)
-    ) {
-      throw new Error("Invalid gesture format");
-    }
-  }
-
-  await saveSettings(parsed);
-  return parsed;
+  // Schema validation error
+  throw new Error(`Invalid settings format: ${parseResult.issues[0]?.message}`);
 }
 
 /**

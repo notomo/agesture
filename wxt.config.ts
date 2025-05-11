@@ -19,7 +19,7 @@ export default defineConfig({
   },
   dev: {
     server: {
-      hostname: "localhost",
+      host: "localhost",
       port: 3000,
     },
   },

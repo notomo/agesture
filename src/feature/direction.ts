@@ -1,9 +1,18 @@
 /**
  * Module for recognizing mouse gesture directions
  */
+import { type InferOutput, literal, union } from "valibot";
 
-// Direction type definition with descriptive values
-export type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
+// Schema for direction
+export const DirectionSchema = union([
+  literal("UP"),
+  literal("DOWN"),
+  literal("LEFT"),
+  literal("RIGHT"),
+]);
+
+// Direction type definition derived from the schema
+export type Direction = InferOutput<typeof DirectionSchema>;
 
 // Point coordinates interface
 export interface Point {

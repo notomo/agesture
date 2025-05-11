@@ -1,19 +1,17 @@
 import {
   type InferOutput,
   array,
-  literal,
   object,
   parseJson,
   pipe,
   safeParse,
   string,
-  union,
   unknown,
 } from "valibot";
 /**
  * Module for managing gesture settings
  */
-import type { Direction } from "./direction";
+import { type Direction, DirectionSchema } from "./direction";
 
 /**
  * Schema for gesture action
@@ -27,16 +25,6 @@ export const GestureActionSchema = object({
  * Type for gesture action
  */
 export type GestureAction = InferOutput<typeof GestureActionSchema>;
-
-/**
- * Schema for direction
- */
-export const DirectionSchema = union([
-  literal("UP"),
-  literal("DOWN"),
-  literal("LEFT"),
-  literal("RIGHT"),
-]);
 
 /**
  * Schema for gesture configuration

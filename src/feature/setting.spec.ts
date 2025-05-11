@@ -1,11 +1,10 @@
 import { safeParse } from "valibot";
 import { describe, expect, test } from "vitest";
-import type { Direction } from "./direction";
+import { type Direction, DirectionSchema } from "./direction";
 /**
  * Tests for setting module
  */
 import {
-  DirectionSchema,
   type Gesture,
   GestureActionSchema,
   GestureSchema,

@@ -6,8 +6,7 @@ import {
   createDirectionRecognizer,
   createInitialState,
   detectDirection,
-  getDirectionsString,
-  resetState,
+  directionEquals,
 } from "./direction";
 
 describe("Direction Recognition", () => {
@@ -22,7 +21,6 @@ describe("Direction Recognition", () => {
 
   it("should have empty directions in initial state", () => {
     expect(state.directions).toEqual([]);
-    expect(getDirectionsString(state)).toBe("");
   });
 
   it("should add points to points array", () => {
@@ -52,7 +50,6 @@ describe("Direction Recognition", () => {
     state = addPoint(state, { x: 0, y: 0 });
     state = addPoint(state, { x: 20, y: 0 }); // Right 20px
     expect(state.directions).toEqual(["RIGHT"]);
-    expect(getDirectionsString(state)).toBe("RIGHT");
   });
 
   it("should recognize left direction", () => {
@@ -81,7 +78,6 @@ describe("Direction Recognition", () => {
     state = addPoint(state, { x: 0, y: 0 }); // Up
 
     expect(state.directions).toEqual(["RIGHT", "DOWN", "LEFT", "UP"]);
-    expect(getDirectionsString(state)).toBe("RIGHTDOWNLEFTUP");
   });
 
   it("should not recognize movements shorter than minimum distance", () => {
@@ -99,23 +95,33 @@ describe("Direction Recognition", () => {
     expect(state.directions).toEqual(["RIGHT"]);
   });
 
-  it("should clear all state when reset", () => {
-    state = addPoint(state, { x: 0, y: 0 });
-    state = addPoint(state, { x: 20, y: 0 });
-
-    expect(state.directions.length).toBe(1);
-    expect(state.points.length).toBe(2);
-
-    state = resetState();
-
-    expect(state.directions).toEqual([]);
-    expect(state.points).toEqual([]);
-  });
-
   it("should work with createDirectionRecognizer factory function", () => {
     const newState = createDirectionRecognizer({ minDistance: 15 });
 
     expect(newState.config.minDistance).toBe(15);
     expect(newState.directions).toEqual([]);
+  });
+});
+
+describe("directionEquals", () => {
+  it("should return true for identical direction arrays", () => {
+    expect(directionEquals(["UP", "DOWN"], ["UP", "DOWN"])).toBe(true);
+    expect(
+      directionEquals(["RIGHT", "LEFT", "UP"], ["RIGHT", "LEFT", "UP"]),
+    ).toBe(true);
+    expect(directionEquals([], [])).toBe(true);
+  });
+
+  it("should return false for different direction arrays", () => {
+    expect(directionEquals(["UP", "DOWN"], ["DOWN", "UP"])).toBe(false);
+    expect(directionEquals(["RIGHT", "LEFT"], ["RIGHT", "LEFT", "UP"])).toBe(
+      false,
+    );
+    expect(directionEquals(["UP", "DOWN"], [])).toBe(false);
+  });
+
+  it("should compare directions in order", () => {
+    expect(directionEquals(["UP", "RIGHT"], ["UP", "LEFT"])).toBe(false);
+    expect(directionEquals(["DOWN", "DOWN"], ["DOWN", "UP"])).toBe(false);
   });
 });

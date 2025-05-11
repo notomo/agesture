@@ -118,17 +118,14 @@ export function addPoint(state: DirectionState, point: Point): DirectionState {
 }
 
 /**
- * Reset the state
+ * Compare two direction arrays for equality
  */
-export function resetState(): DirectionState {
-  return createInitialState();
-}
+export function directionEquals(a: Direction[], b: Direction[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
 
-/**
- * Get directions as a string
- */
-export function getDirectionsString(state: DirectionState): string {
-  return state.directions.join("");
+  return a.every((dir, index) => dir === b[index]);
 }
 
 /**

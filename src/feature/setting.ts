@@ -11,7 +11,7 @@ import {
 /**
  * Module for managing gesture settings
  */
-import { type Direction, DirectionSchema } from "./direction";
+import { type Direction, DirectionSchema, directionEquals } from "./direction";
 
 /**
  * Schema for gesture action
@@ -95,11 +95,8 @@ export function findGestureByDirections(
   settings: Settings,
   directions: Direction[],
 ): Gesture | undefined {
-  const directionString = directions.join("");
-
   return settings.gestures.find((gesture) => {
-    const gestureDirectionString = gesture.inputs.join("");
-    return gestureDirectionString === directionString;
+    return directionEquals(gesture.inputs, directions);
   });
 }
 

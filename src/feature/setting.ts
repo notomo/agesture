@@ -104,57 +104,6 @@ export function findGestureByDirections(
 }
 
 /**
- * Add a new gesture or update an existing one
- */
-export async function addOrUpdateGesture(gesture: Gesture): Promise<Settings> {
-  const settings = await getSettings();
-
-  // Find existing gesture with same inputs
-  const existingIndex = settings.gestures.findIndex(
-    (g) => g.inputs.join("") === gesture.inputs.join(""),
-  );
-
-  if (existingIndex >= 0) {
-    // Update existing gesture
-    settings.gestures[existingIndex] = gesture;
-  } else {
-    // Add new gesture
-    settings.gestures.push(gesture);
-  }
-
-  await saveSettings(settings);
-  return settings;
-}
-
-/**
- * Remove a gesture
- */
-export async function removeGesture(inputs: Direction[]): Promise<Settings> {
-  const settings = await getSettings();
-
-  const inputsString = inputs.join("");
-
-  // Filter out the gesture with matching inputs
-  settings.gestures = settings.gestures.filter(
-    (g) => g.inputs.join("") !== inputsString,
-  );
-
-  await saveSettings(settings);
-  return settings;
-}
-
-/**
- * Clear all gestures
- */
-export async function clearAllGestures(): Promise<Settings> {
-  const settings = await getSettings();
-  settings.gestures = [];
-
-  await saveSettings(settings);
-  return settings;
-}
-
-/**
  * Import settings from JSON string
  * @returns An object with success flag and either settings or error message
  */

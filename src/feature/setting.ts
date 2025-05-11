@@ -168,10 +168,11 @@ export async function clearAllGestures(): Promise<Settings> {
 
 /**
  * Import settings from JSON string
+ * @returns An object with success flag and either settings or error message
  */
 export async function importSettingsFromJson(
   jsonString: string,
-): Promise<Settings> {
+): Promise<{ success: boolean; data?: Settings; error?: string }> {
   const parseResult = safeParse(
     pipe(string(), parseJson(), SettingsSchema),
     jsonString,
@@ -180,10 +181,13 @@ export async function importSettingsFromJson(
   if (parseResult.success) {
     // Save the validated settings
     await saveSettings(parseResult.output);
-    return parseResult.output;
+    return { success: true, data: parseResult.output };
   }
   // Schema validation error
-  throw new Error(`Invalid settings format: ${parseResult.issues[0]?.message}`);
+  return {
+    success: false,
+    error: `Invalid settings format: ${parseResult.issues[0]?.message}`,
+  };
 }
 
 /**

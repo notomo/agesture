@@ -1,5 +1,9 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import {
+  exportSettingsToJson,
+  importSettingsFromJson,
+} from "../../../src/feature/setting";
 
 const container = document.getElementById("app");
 if (!container) {
@@ -19,20 +23,23 @@ function App() {
   useEffect(() => {
     // Load current settings when component mounts
     async function loadSettings() {
-      const result = await browser.storage.sync.get("gestureSettings");
-      if (result["gestureSettings"]) {
-        setSettingsJson(JSON.stringify(result["gestureSettings"], null, 2));
-      }
+      const loadedSettingsJson = await exportSettingsToJson();
+      setSettingsJson(loadedSettingsJson);
     }
 
     loadSettings();
   }, []);
 
   const handleSaveSettings = async () => {
-    const settings = JSON.parse(settingsJson);
-    await browser.storage.sync.set({ gestureSettings: settings });
-    setIsError(false);
-    setStatusMessage("Settings saved successfully");
+    const result = await importSettingsFromJson(settingsJson);
+
+    if (result.success) {
+      setIsError(false);
+      setStatusMessage("Settings saved successfully");
+    } else {
+      setIsError(true);
+      setStatusMessage(`Error: ${result.error}`);
+    }
   };
 
   return (

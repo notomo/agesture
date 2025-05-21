@@ -15,23 +15,10 @@ export interface TabInfo {
 }
 
 /**
- * Interface for active element information
- */
-export interface ActiveElement {
-  href: string | undefined;
-  tagName: string | undefined;
-  innerText: string | undefined;
-  isInput: boolean;
-  isEditable: boolean;
-  value: string | undefined;
-}
-
-/**
  * Interface for content context information
  */
 export type ContentActionContext = {
   selectedText: string;
-  activeElement: ActiveElement;
   selectionExists: boolean;
   gestureDirection: string;
 };
@@ -64,23 +51,6 @@ export function createTabInfo(partialTab: Partial<TabInfo> = {}): TabInfo {
 }
 
 /**
- * Create active element info object with default values
- */
-export function createActiveElement(
-  partialElement: Partial<ActiveElement> = {},
-): ActiveElement {
-  return {
-    href: undefined,
-    tagName: undefined,
-    innerText: undefined,
-    isInput: false,
-    isEditable: false,
-    value: undefined,
-    ...partialElement,
-  };
-}
-
-/**
  * Create content action context with default values
  */
 export function createContentActionContext(
@@ -88,7 +58,6 @@ export function createContentActionContext(
 ): ContentActionContext {
   return {
     selectedText: "",
-    activeElement: createActiveElement(),
     selectionExists: false,
     gestureDirection: "",
     ...partialContext,
@@ -118,42 +87,6 @@ export function createActionContext(
     content: createContentActionContext(partialContent),
     background: createBackgroundActionContext(partialBackground),
   };
-}
-
-/**
- * Extract active element information from a DOM element
- */
-export function extractActiveElementInfo(
-  element: Element | null,
-): ActiveElement {
-  if (!element) {
-    return createActiveElement();
-  }
-
-  const tagName = element.tagName;
-
-  // Check if element is an input or editable
-  const isInput =
-    tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
-  const isEditable =
-    element.hasAttribute("contenteditable") &&
-    element.getAttribute("contenteditable") !== "false";
-
-  // Get href if element is an anchor
-  const href =
-    tagName === "A" ? (element as HTMLAnchorElement).href : undefined;
-
-  // Get value if element is an input
-  const value = isInput ? (element as HTMLInputElement).value : undefined;
-
-  return createActiveElement({
-    href,
-    tagName,
-    innerText: element.textContent || undefined,
-    isInput,
-    isEditable,
-    value,
-  });
 }
 
 /**
@@ -188,11 +121,9 @@ export function buildContentActionContext(
   gestureDirection: string,
 ): ContentActionContext {
   const selectedText = getSelectedText();
-  const activeElement = extractActiveElementInfo(document.activeElement);
 
   return createContentActionContext({
     selectedText,
-    activeElement,
     selectionExists: selectedText.length > 0,
     gestureDirection,
   });

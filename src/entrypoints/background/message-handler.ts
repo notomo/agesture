@@ -8,12 +8,9 @@ import {
   type InferOutput,
   array,
   boolean,
-  number,
   object,
   parse,
   string,
-  undefined_,
-  union,
 } from "valibot";
 import { type Action, actions } from "../../feature/action";
 import { buildActionContext } from "../../feature/action-context";
@@ -21,23 +18,10 @@ import { DirectionSchema } from "../../feature/direction";
 import { findGestureByDirections, getSettings } from "../../feature/setting";
 
 /**
- * Schema for ActiveElement
- */
-const ActiveElementSchema = object({
-  href: union([string(), undefined_()]),
-  tagName: union([string(), undefined_()]),
-  innerText: union([string(), undefined_()]),
-  isInput: boolean(),
-  isEditable: boolean(),
-  value: union([string(), undefined_()]),
-});
-
-/**
  * Schema for ContentActionContext
  */
 const ContentActionContextSchema = object({
   selectedText: string(),
-  activeElement: ActiveElementSchema,
   selectionExists: boolean(),
   gestureDirection: string(),
 });

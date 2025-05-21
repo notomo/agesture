@@ -1,39 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  type BackgroundActionContext,
+  type ContentActionContext,
   createActionContext,
   createActiveElement,
+  createBackgroundActionContext,
+  createContentActionContext,
   createTabInfo,
   extractActiveElementInfo,
   getSelectedText,
 } from "./action-context";
 
 describe("Action Context", () => {
-  describe("createTabInfo", () => {
-    it("should create tab info with default values", () => {
-      const tabInfo = createTabInfo();
-
-      expect(tabInfo).toEqual({
-        id: undefined,
-        url: undefined,
-        title: undefined,
-      });
-    });
-
-    it("should create tab info with provided values", () => {
-      const tabInfo = createTabInfo({
-        id: 123,
-        url: "https://example.com",
-        title: "Example Page",
-      });
-
-      expect(tabInfo).toEqual({
-        id: 123,
-        url: "https://example.com",
-        title: "Example Page",
-      });
-    });
-  });
-
   describe("createActiveElement", () => {
     it("should create active element info with default values", () => {
       const activeElement = createActiveElement();
@@ -89,17 +67,12 @@ describe("Action Context", () => {
     });
   });
 
-  describe("createActionContext", () => {
-    it("should create action context with default values", () => {
-      const context = createActionContext();
+  describe("createContentActionContext", () => {
+    it("should create content action context with default values", () => {
+      const context = createContentActionContext();
 
       expect(context).toEqual({
         selectedText: "",
-        tab: {
-          id: undefined,
-          url: undefined,
-          title: undefined,
-        },
         activeElement: {
           href: undefined,
           tagName: undefined,
@@ -113,22 +86,15 @@ describe("Action Context", () => {
       });
     });
 
-    it("should create action context with provided values", () => {
-      const tab = createTabInfo({
-        id: 123,
-        url: "https://example.com",
-        title: "Example Page",
-      });
-
+    it("should create content action context with provided values", () => {
       const activeElement = createActiveElement({
         href: "https://example.com/link",
         tagName: "A",
         innerText: "Click me",
       });
 
-      const context = createActionContext({
+      const context = createContentActionContext({
         selectedText: "Selected text",
-        tab,
         activeElement,
         selectionExists: true,
         gestureDirection: "LEFTRIGHT",
@@ -136,11 +102,6 @@ describe("Action Context", () => {
 
       expect(context).toEqual({
         selectedText: "Selected text",
-        tab: {
-          id: 123,
-          url: "https://example.com",
-          title: "Example Page",
-        },
         activeElement: {
           href: "https://example.com/link",
           tagName: "A",
@@ -151,6 +112,115 @@ describe("Action Context", () => {
         },
         selectionExists: true,
         gestureDirection: "LEFTRIGHT",
+      });
+    });
+  });
+
+  describe("createBackgroundActionContext", () => {
+    it("should create background action context with default values", () => {
+      const context = createBackgroundActionContext();
+
+      expect(context).toEqual({
+        tab: {
+          id: undefined,
+          url: undefined,
+          title: undefined,
+        },
+      });
+    });
+
+    it("should create background action context with provided values", () => {
+      const tab = createTabInfo({
+        id: 123,
+        url: "https://example.com",
+        title: "Example Page",
+      });
+
+      const context = createBackgroundActionContext({
+        tab,
+      });
+
+      expect(context).toEqual({
+        tab: {
+          id: 123,
+          url: "https://example.com",
+          title: "Example Page",
+        },
+      });
+    });
+  });
+
+  describe("createActionContext", () => {
+    it("should create action context with default values", () => {
+      const context = createActionContext();
+
+      expect(context).toEqual({
+        content: {
+          selectedText: "",
+          activeElement: {
+            href: undefined,
+            tagName: undefined,
+            innerText: undefined,
+            isInput: false,
+            isEditable: false,
+            value: undefined,
+          },
+          selectionExists: false,
+          gestureDirection: "",
+        },
+        background: {
+          tab: {
+            id: undefined,
+            url: undefined,
+            title: undefined,
+          },
+        },
+      });
+    });
+
+    it("should create action context with provided values", () => {
+      const contentContext: Partial<ContentActionContext> = {
+        selectedText: "Selected text",
+        activeElement: createActiveElement({
+          href: "https://example.com/link",
+          tagName: "A",
+          innerText: "Click me",
+        }),
+        selectionExists: true,
+        gestureDirection: "LEFTRIGHT",
+      };
+
+      const backgroundContext: Partial<BackgroundActionContext> = {
+        tab: createTabInfo({
+          id: 123,
+          url: "https://example.com",
+          title: "Example Page",
+        }),
+      };
+
+      const context = createActionContext(contentContext, backgroundContext);
+
+      expect(context).toEqual({
+        content: {
+          selectedText: "Selected text",
+          activeElement: {
+            href: "https://example.com/link",
+            tagName: "A",
+            innerText: "Click me",
+            isInput: false,
+            isEditable: false,
+            value: undefined,
+          },
+          selectionExists: true,
+          gestureDirection: "LEFTRIGHT",
+        },
+        background: {
+          tab: {
+            id: 123,
+            url: "https://example.com",
+            title: "Example Page",
+          },
+        },
       });
     });
   });
@@ -223,16 +293,24 @@ describe("Action Context", () => {
   });
 
   // Integration of buildActionContext will be tested separately
-  describe("buildActionContext", () => {
-    it("should create action context with gesture direction", () => {
-      // Use a simplified test that doesn't rely on mocked functions
-      const context = createActionContext({
+  describe("buildContentActionContext", () => {
+    it("should create content action context with gesture direction", () => {
+      // Mock getSelectedText
+      vi.spyOn(window, "getSelection").mockReturnValue({
+        toString: () => "Selected text",
+      } as Selection);
+
+      // Mock document.activeElement
+      const mockActiveElement = document.createElement("a");
+      mockActiveElement.href = "https://example.com/link";
+      mockActiveElement.textContent = "Active Link";
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(
+        mockActiveElement,
+      );
+
+      // Get the content context
+      const context = createContentActionContext({
         selectedText: "Selected text",
-        tab: createTabInfo({
-          id: 123,
-          url: "https://example.com",
-          title: "Example Page",
-        }),
         activeElement: createActiveElement({
           href: "https://example.com/link",
           tagName: "A",
@@ -245,9 +323,6 @@ describe("Action Context", () => {
       expect(context.selectedText).toBe("Selected text");
       expect(context.selectionExists).toBe(true);
       expect(context.gestureDirection).toBe("LEFTRIGHT");
-      expect(context.tab.id).toBe(123);
-      expect(context.tab.url).toBe("https://example.com");
-      expect(context.tab.title).toBe("Example Page");
       expect(context.activeElement.href).toBe("https://example.com/link");
       expect(context.activeElement.tagName).toBe("A");
       expect(context.activeElement.innerText).toBe("Active Link");

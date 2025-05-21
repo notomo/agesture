@@ -18,7 +18,8 @@ import type { ActionContext } from "./action-context";
  */
 export async function bookmarkAction(context: ActionContext): Promise<void> {
   // Extract relevant information from context
-  const { tab } = context;
+  const { background } = context;
+  const { tab } = background;
 
   // Create bookmark data based on available context
   const bookmarkData = {

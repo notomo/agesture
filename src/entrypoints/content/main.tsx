@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { buildActionContext } from "../../feature/action-context";
+import { buildContentActionContext } from "../../feature/action-context";
 import { type Direction, detectDirection } from "../../feature/direction";
 
 export const App = () => {
@@ -67,7 +67,7 @@ export const App = () => {
       }
       hasDirection = true;
 
-      const context = await buildActionContext(directions.join(""));
+      const context = buildContentActionContext(directions.join(""));
       await browser.runtime.sendMessage({
         type: "gesture",
         directions,

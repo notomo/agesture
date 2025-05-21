@@ -16,17 +16,9 @@ import {
   union,
 } from "valibot";
 import { type Action, actions } from "../../feature/action";
+import { buildActionContext } from "../../feature/action-context";
 import { DirectionSchema } from "../../feature/direction";
 import { findGestureByDirections, getSettings } from "../../feature/setting";
-
-/**
- * Schema for TabInfo - matching the interface where properties can be undefined
- */
-const TabInfoSchema = object({
-  id: union([number(), undefined_()]),
-  url: union([string(), undefined_()]),
-  title: union([string(), undefined_()]),
-});
 
 /**
  * Schema for ActiveElement
@@ -41,11 +33,10 @@ const ActiveElementSchema = object({
 });
 
 /**
- * Schema for ActionContext
+ * Schema for ContentActionContext
  */
-const ActionContextSchema = object({
+const ContentActionContextSchema = object({
   selectedText: string(),
-  tab: TabInfoSchema,
   activeElement: ActiveElementSchema,
   selectionExists: boolean(),
   gestureDirection: string(),
@@ -57,7 +48,7 @@ const ActionContextSchema = object({
 export const GestureMessageSchema = object({
   type: string(),
   directions: array(DirectionSchema),
-  context: ActionContextSchema,
+  context: ContentActionContextSchema,
 });
 
 /**
@@ -100,6 +91,8 @@ export async function handleMessage(message: unknown): Promise<void> {
     return;
   }
 
-  // Execute the action with the provided context
-  await actionFunction(parsedMessage.context);
+  // Execute the action with the full context
+  const contentContext = parsedMessage.context;
+  const fullContext = await buildActionContext(contentContext);
+  await actionFunction(fullContext);
 }

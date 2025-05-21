@@ -150,7 +150,8 @@ export async function buildActionContext(
   gestureDirection: string,
 ): Promise<ActionContext> {
   const selectedText = getSelectedText();
-  const tab = await getCurrentTabInfo();
+  // const tab = await getCurrentTabInfo();
+  const tab = { id: undefined, url: undefined, title: undefined };
   const activeElement = extractActiveElementInfo(document.activeElement);
 
   return createActionContext({

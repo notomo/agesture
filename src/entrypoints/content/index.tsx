@@ -8,7 +8,7 @@ export default defineContentScript({
 
   async main(ctx) {
     const ui = await createShadowRootUi(ctx, {
-      name: "agesture",
+      name: "agesture-app",
       position: "inline",
       anchor: "body",
       append: "first",

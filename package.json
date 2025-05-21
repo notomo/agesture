@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wxt",
+    "start": "wxt",
     "build": "wxt build",
     "zip": "wxt zip",
     "postinstall": "wxt prepare",

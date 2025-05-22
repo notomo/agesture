@@ -17,45 +17,28 @@ import { buildActionContext } from "../../feature/action-context";
 import { DirectionSchema } from "../../feature/direction";
 import { findGestureByDirections, getSettings } from "../../feature/setting";
 
-/**
- * Schema for ContentActionContext
- */
 const ContentActionContextSchema = object({
   selectedText: string(),
   selectionExists: boolean(),
   gestureDirection: string(),
 });
 
-/**
- * Message schema for gesture execution
- */
 export const GestureMessageSchema = object({
   type: string(),
   directions: array(DirectionSchema),
   context: ContentActionContextSchema,
 });
 
-/**
- * Type for gesture execution message
- */
 export type GestureMessage = InferOutput<typeof GestureMessageSchema>;
 
-/**
- * Handle incoming messages from content scripts
- */
 export async function handleMessage(message: unknown): Promise<void> {
-  // Parse the message using valibot for type safety
   const parsedMessage = parse(GestureMessageSchema, message);
 
-  // Only handle gesture messages
   if (parsedMessage.type !== "gesture") {
     return;
   }
 
-  // Get current settings
   const settings = await getSettings();
-
-  // Find matching gesture configuration
   const gesture = findGestureByDirections(settings, parsedMessage.directions);
 
   if (!gesture) {
@@ -66,7 +49,6 @@ export async function handleMessage(message: unknown): Promise<void> {
     return;
   }
 
-  // Get the action function
   const actionName = gesture.action.name as Action;
   const actionFunction = actions[actionName];
 
@@ -75,7 +57,6 @@ export async function handleMessage(message: unknown): Promise<void> {
     return;
   }
 
-  // Execute the action with the full context
   const contentContext = parsedMessage.context;
   const fullContext = await buildActionContext(contentContext);
   await actionFunction(fullContext);

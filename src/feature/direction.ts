@@ -3,7 +3,6 @@
  */
 import { type InferOutput, literal, union } from "valibot";
 
-// Schema for direction
 export const DirectionSchema = union([
   literal("UP"),
   literal("DOWN"),
@@ -11,22 +10,18 @@ export const DirectionSchema = union([
   literal("RIGHT"),
 ]);
 
-// Direction type definition derived from the schema
 export type Direction = InferOutput<typeof DirectionSchema>;
 
-// Point coordinates interface
 export interface Point {
   x: number;
   y: number;
 }
 
-// Gesture configuration interface
 export interface DirectionConfig {
   // Minimum distance (in pixels) for direction detection
   minDistance: number;
 }
 
-// Direction recognizer state
 export interface DirectionState {
   config: DirectionConfig;
   points: Point[];
@@ -34,14 +29,10 @@ export interface DirectionState {
   lastDirection: Direction | null;
 }
 
-// Default configuration
 const DEFAULT_CONFIG: DirectionConfig = {
   minDistance: 20,
 };
 
-/**
- * Create initial state for direction recognizer
- */
 export function createInitialState(
   config: Partial<DirectionConfig> = {},
 ): DirectionState {
@@ -53,9 +44,6 @@ export function createInitialState(
   };
 }
 
-/**
- * Detect direction between two points
- */
 export function detectDirection(
   from: Point,
   to: Point,
@@ -65,21 +53,16 @@ export function detectDirection(
   const dy = to.y - from.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  // Don't detect direction if distance is less than minimum
   if (distance < minDistance) {
     return null;
   }
 
-  // Determine direction by comparing horizontal and vertical angles
   if (Math.abs(dx) > Math.abs(dy)) {
     return dx > 0 ? "RIGHT" : "LEFT";
   }
   return dy > 0 ? "DOWN" : "UP";
 }
 
-/**
- * Add a new point and update directions
- */
 export function addPoint(state: DirectionState, point: Point): DirectionState {
   const newPoints = [...state.points, point];
 
@@ -92,7 +75,6 @@ export function addPoint(state: DirectionState, point: Point): DirectionState {
 
   const lastPoint = state.points[state.points.length - 1];
 
-  // Ensure lastPoint is defined before passing to detectDirection
   if (!lastPoint) {
     return {
       ...state,
@@ -117,9 +99,6 @@ export function addPoint(state: DirectionState, point: Point): DirectionState {
   };
 }
 
-/**
- * Compare two direction arrays for equality
- */
 export function directionEquals(a: Direction[], b: Direction[]): boolean {
   if (a.length !== b.length) {
     return false;
@@ -128,9 +107,6 @@ export function directionEquals(a: Direction[], b: Direction[]): boolean {
   return a.every((dir, index) => dir === b[index]);
 }
 
-/**
- * Create a new direction recognizer state
- */
 export function createDirectionRecognizer(
   config?: Partial<DirectionConfig>,
 ): DirectionState {

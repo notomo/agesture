@@ -23,7 +23,6 @@ function App() {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    // Load current settings when component mounts
     async function loadSettings() {
       const loadedSettingsJson = await exportSettingsToJson();
       setSettingsJson(loadedSettingsJson);

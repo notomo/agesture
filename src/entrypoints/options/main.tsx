@@ -4,7 +4,7 @@ import {
   DEFAULT_SETTINGS,
   exportSettingsToJson,
   importSettingsFromJson,
-} from "../../../src/feature/setting";
+} from "../../feature/setting";
 
 const container = document.getElementById("app");
 if (!container) {

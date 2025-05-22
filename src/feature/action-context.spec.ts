@@ -16,13 +16,6 @@ describe("Action Context", () => {
 
       expect(context).toEqual({
         selectedText: "",
-        activeElement: {
-          tagName: undefined,
-          innerText: undefined,
-          isInput: false,
-          isEditable: false,
-          value: undefined,
-        },
         selectionExists: false,
         gestureDirection: "",
       });
@@ -37,13 +30,6 @@ describe("Action Context", () => {
 
       expect(context).toEqual({
         selectedText: "Selected text",
-        activeElement: {
-          tagName: "A",
-          innerText: "Click me",
-          isInput: false,
-          isEditable: false,
-          value: undefined,
-        },
         selectionExists: true,
         gestureDirection: "LEFTRIGHT",
       });
@@ -91,13 +77,6 @@ describe("Action Context", () => {
       expect(context).toEqual({
         content: {
           selectedText: "",
-          activeElement: {
-            tagName: undefined,
-            innerText: undefined,
-            isInput: false,
-            isEditable: false,
-            value: undefined,
-          },
           selectionExists: false,
           gestureDirection: "",
         },
@@ -131,13 +110,6 @@ describe("Action Context", () => {
       expect(context).toEqual({
         content: {
           selectedText: "Selected text",
-          activeElement: {
-            tagName: "A",
-            innerText: "Click me",
-            isInput: false,
-            isEditable: false,
-            value: undefined,
-          },
           selectionExists: true,
           gestureDirection: "LEFTRIGHT",
         },

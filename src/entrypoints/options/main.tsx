@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  DEFAULT_SETTINGS,
   exportSettingsToJson,
   importSettingsFromJson,
 } from "../../../src/feature/setting";
@@ -55,7 +56,7 @@ function App() {
           className="w-full h-64 p-2 border rounded font-mono"
           value={settingsJson}
           onChange={(e) => setSettingsJson(e.target.value)}
-          placeholder='{"gestures": [{"inputs": ["RIGHT", "DOWN"], "action": {"name": "bookmark", "args": []}}]}'
+          placeholder={JSON.stringify(DEFAULT_SETTINGS)}
         />
       </div>
 
@@ -82,17 +83,7 @@ function App() {
       <div className="mt-8 p-4 bg-gray-100 rounded">
         <h2 className="text-xl font-bold mb-2">Example Settings</h2>
         <pre className="font-mono text-sm">
-          {`{
-  "gestures": [
-    {
-      "inputs": ["RIGHT", "DOWN"],
-      "action": {
-        "name": "bookmark",
-        "args": []
-      }
-    }
-  ]
-}`}
+          {JSON.stringify(DEFAULT_SETTINGS, null, 2)}
         </pre>
       </div>
     </div>

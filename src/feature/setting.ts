@@ -54,7 +54,7 @@ export type Settings = InferOutput<typeof SettingsSchema>;
 /**
  * Default settings
  */
-const DEFAULT_SETTINGS: Settings = {
+export const DEFAULT_SETTINGS: Settings = {
   gestures: [
     {
       inputs: ["RIGHT", "DOWN"],

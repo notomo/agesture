@@ -4,40 +4,13 @@
  * Handles messages from content scripts and executes corresponding actions
  */
 
-import {
-  type InferOutput,
-  array,
-  boolean,
-  object,
-  parse,
-  string,
-} from "valibot";
 import { type Action, actions } from "../../feature/action";
 import { buildActionContext } from "../../feature/action-context";
-import { DirectionSchema } from "../../feature/direction";
+import { parseMessage } from "../../feature/message";
 import { findGestureByDirections, getSettings } from "../../feature/setting";
 
-const ContentActionContextSchema = object({
-  selectedText: string(),
-  selectionExists: boolean(),
-  gestureDirection: string(),
-});
-
-export const GestureMessageSchema = object({
-  type: string(),
-  directions: array(DirectionSchema),
-  context: ContentActionContextSchema,
-});
-
-export type GestureMessage = InferOutput<typeof GestureMessageSchema>;
-
 export async function handleMessage(message: unknown): Promise<void> {
-  const parsedMessage = parse(GestureMessageSchema, message);
-
-  if (parsedMessage.type !== "gesture") {
-    return;
-  }
-
+  const parsedMessage = parseMessage(message);
   const settings = await getSettings();
   const gesture = findGestureByDirections(settings, parsedMessage.directions);
 

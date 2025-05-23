@@ -8,9 +8,7 @@
 import { type InferOutput, literal, union } from "valibot";
 import type { ActionContext } from "./action-context";
 
-export async function bookmarkAction({
-  background,
-}: ActionContext): Promise<void> {
+async function bookmarkAction({ background }: ActionContext) {
   const { tab } = background;
 
   await browser.bookmarks.create({
@@ -20,9 +18,9 @@ export async function bookmarkAction({
 }
 
 export const ActionNameSchema = union([literal("bookmark")]);
-export type ActionName = InferOutput<typeof ActionNameSchema>;
-type ActionFunction = (context: ActionContext) => void;
+type ActionName = InferOutput<typeof ActionNameSchema>;
+type Action = (context: ActionContext) => void;
 
 export const actions = {
   bookmark: bookmarkAction,
-} as const satisfies Record<ActionName, ActionFunction>;
+} as const satisfies Record<ActionName, Action>;

@@ -1,107 +1,25 @@
-import { safeParse } from "valibot";
-import { describe, expect, test } from "vitest";
-import { type Direction, DirectionSchema } from "./direction";
+import { describe, expect, it, test } from "vitest";
 import {
-  type Gesture,
-  GestureActionSchema,
-  GestureSchema,
-  type Settings,
-  SettingsSchema,
+  exportSettingsToJson,
   findGestureByDirections,
+  importSettingsFromJson,
 } from "./setting";
 
-describe("Valibot Schemas", () => {
-  describe("DirectionSchema", () => {
-    test("validates valid directions", () => {
-      const result1 = safeParse(DirectionSchema, "UP");
-      expect(result1.success).toBe(true);
+describe("import and export", () => {
+  it("can deal default setting", async () => {
+    const exported = await exportSettingsToJson();
+    await importSettingsFromJson(exported);
 
-      const result2 = safeParse(DirectionSchema, "DOWN");
-      expect(result2.success).toBe(true);
+    const got = await exportSettingsToJson();
 
-      const result3 = safeParse(DirectionSchema, "LEFT");
-      expect(result3.success).toBe(true);
-
-      const result4 = safeParse(DirectionSchema, "RIGHT");
-      expect(result4.success).toBe(true);
-    });
-
-    test("rejects invalid directions", () => {
-      const result1 = safeParse(DirectionSchema, "DIAGONAL");
-      expect(result1.success).toBe(false);
-
-      const result2 = safeParse(DirectionSchema, "");
-      expect(result2.success).toBe(false);
-
-      const result3 = safeParse(DirectionSchema, 123);
-      expect(result3.success).toBe(false);
-    });
+    expect(got).toEqual(exported);
   });
+});
 
-  describe("GestureActionSchema", () => {
-    test("validates valid gesture actions", () => {
-      const validAction = {
-        name: "bookmark",
-        args: ["arg1", 2, { key: "value" }],
-      };
-      const result = safeParse(GestureActionSchema, validAction);
-      expect(result.success).toBe(true);
-    });
-
-    test("rejects invalid gesture actions", () => {
-      // Missing name
-      const result1 = safeParse(GestureActionSchema, { args: [] });
-      expect(result1.success).toBe(false);
-
-      // Name not a string
-      const result2 = safeParse(GestureActionSchema, { name: 123, args: [] });
-      expect(result2.success).toBe(false);
-
-      // Args not an array
-      const result3 = safeParse(GestureActionSchema, {
-        name: "bookmark",
-        args: "not an array",
-      });
-      expect(result3.success).toBe(false);
-    });
-  });
-
-  describe("GestureSchema", () => {
-    test("validates valid gestures", () => {
-      const validGesture = {
-        inputs: ["UP", "DOWN"],
-        action: { name: "bookmark", args: [] },
-      };
-      const result = safeParse(GestureSchema, validGesture);
-      expect(result.success).toBe(true);
-    });
-
-    test("rejects invalid gestures", () => {
-      // Missing inputs
-      const result1 = safeParse(GestureSchema, {
-        action: { name: "bookmark", args: [] },
-      });
-      expect(result1.success).toBe(false);
-
-      // Invalid direction in inputs
-      const result2 = safeParse(GestureSchema, {
-        inputs: ["UP", "INVALID"],
-        action: { name: "test", args: [] },
-      });
-      expect(result2.success).toBe(false);
-
-      // Invalid action
-      const result3 = safeParse(GestureSchema, {
-        inputs: ["UP", "DOWN"],
-        action: { name: 123, args: [] },
-      });
-      expect(result3.success).toBe(false);
-    });
-  });
-
-  describe("SettingsSchema", () => {
-    test("validates valid settings", () => {
-      const validSettings = {
+describe("findGestureByDirections", () => {
+  test("returns the matching gesture when found", () => {
+    const got = findGestureByDirections(
+      {
         gestures: [
           {
             inputs: ["UP", "DOWN"],
@@ -109,99 +27,43 @@ describe("Valibot Schemas", () => {
           },
           {
             inputs: ["LEFT", "RIGHT"],
-            action: { name: "bookmark", args: [1, 2, 3] },
-          },
-        ],
-      };
-      const result1 = safeParse(SettingsSchema, validSettings);
-      expect(result1.success).toBe(true);
-
-      // Empty gestures array is also valid
-      const result2 = safeParse(SettingsSchema, { gestures: [] });
-      expect(result2.success).toBe(true);
-    });
-
-    test("rejects invalid settings", () => {
-      // Missing gestures property
-      const result1 = safeParse(SettingsSchema, {});
-      expect(result1.success).toBe(false);
-
-      // Gestures not an array
-      const result2 = safeParse(SettingsSchema, { gestures: "not an array" });
-      expect(result2.success).toBe(false);
-
-      // Invalid gesture in array
-      const result3 = safeParse(SettingsSchema, {
-        gestures: [
-          {
-            inputs: ["INVALID"],
             action: { name: "bookmark", args: [] },
           },
         ],
-      });
-      expect(result3.success).toBe(false);
-    });
-  });
-});
+      },
+      ["LEFT", "RIGHT"],
+    );
 
-describe("findGestureByDirections", () => {
-  test("returns the matching gesture when found", () => {
-    // Setup
-    const gesture1: Gesture = {
-      inputs: ["UP", "DOWN"],
-      action: { name: "bookmark", args: [] },
-    };
-
-    const gesture2: Gesture = {
+    expect(got).toEqual({
       inputs: ["LEFT", "RIGHT"],
       action: { name: "bookmark", args: [] },
-    };
-
-    const settings: Settings = {
-      gestures: [gesture1, gesture2],
-    };
-
-    const directions: Direction[] = ["LEFT", "RIGHT"];
-
-    // Execute
-    const result = findGestureByDirections(settings, directions);
-
-    // Verify
-    expect(result).toEqual(gesture2);
+    });
   });
 
   test("returns undefined when no matching gesture is found", () => {
-    // Setup
-    const gesture: Gesture = {
-      inputs: ["UP", "DOWN"],
-      action: { name: "bookmark", args: [] },
-    };
+    const got = findGestureByDirections(
+      {
+        gestures: [
+          {
+            inputs: ["UP", "DOWN"],
+            action: { name: "bookmark", args: [] },
+          },
+        ],
+      },
+      ["LEFT", "RIGHT"],
+    );
 
-    const settings: Settings = {
-      gestures: [gesture],
-    };
-
-    const directions: Direction[] = ["LEFT", "RIGHT"];
-
-    // Execute
-    const result = findGestureByDirections(settings, directions);
-
-    // Verify
-    expect(result).toBeUndefined();
+    expect(got).toBeUndefined();
   });
 
   test("returns undefined when gestures array is empty", () => {
-    // Setup
-    const settings: Settings = {
-      gestures: [],
-    };
+    const got = findGestureByDirections(
+      {
+        gestures: [],
+      },
+      ["LEFT", "RIGHT"],
+    );
 
-    const directions: Direction[] = ["LEFT", "RIGHT"];
-
-    // Execute
-    const result = findGestureByDirections(settings, directions);
-
-    // Verify
-    expect(result).toBeUndefined();
+    expect(got).toBeUndefined();
   });
 });

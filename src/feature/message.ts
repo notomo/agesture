@@ -4,15 +4,7 @@
  * Defines message schemas and parsing functions for gesture messages
  */
 
-import {
-  type InferOutput,
-  array,
-  boolean,
-  literal,
-  object,
-  parse,
-  string,
-} from "valibot";
+import { array, boolean, literal, object, parse, string } from "valibot";
 import { DirectionSchema } from "./direction";
 
 const ContentActionContextSchema = object({
@@ -21,14 +13,12 @@ const ContentActionContextSchema = object({
   gestureDirection: string(),
 });
 
-export const GestureMessageSchema = object({
+const GestureMessageSchema = object({
   type: literal("gesture"),
   directions: array(DirectionSchema),
   context: ContentActionContextSchema,
 });
 
-export type GestureMessage = InferOutput<typeof GestureMessageSchema>;
-
-export function parseMessage(message: unknown): GestureMessage {
+export function parseMessage(message: unknown) {
   return parse(GestureMessageSchema, message);
 }

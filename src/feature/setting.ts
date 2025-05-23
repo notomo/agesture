@@ -11,25 +11,21 @@ import {
 import { ActionNameSchema } from "./action";
 import { type Direction, DirectionSchema, directionEquals } from "./direction";
 
-export const GestureActionSchema = object({
+const GestureActionSchema = object({
   name: ActionNameSchema,
   args: array(unknown()),
 });
 
-export type GestureAction = InferOutput<typeof GestureActionSchema>;
-
-export const GestureSchema = object({
+const GestureSchema = object({
   inputs: array(DirectionSchema),
   action: GestureActionSchema,
 });
+type Gesture = InferOutput<typeof GestureSchema>;
 
-export type Gesture = InferOutput<typeof GestureSchema>;
-
-export const SettingsSchema = object({
+const SettingsSchema = object({
   gestures: array(GestureSchema),
 });
-
-export type Settings = InferOutput<typeof SettingsSchema>;
+type Settings = InferOutput<typeof SettingsSchema>;
 
 export const DEFAULT_SETTINGS: Settings = {
   gestures: [
@@ -43,24 +39,16 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
 };
 
-const STORAGE_KEY = "gestureSettings";
+const settingItem = storage.defineItem<Settings>("local:gestureSettings", {
+  defaultValue: DEFAULT_SETTINGS,
+});
 
 export async function getSettings(): Promise<Settings> {
-  const result = await browser.storage.sync.get(STORAGE_KEY);
-  const rawSettings = result[STORAGE_KEY] || DEFAULT_SETTINGS;
-
-  const parseResult = safeParse(SettingsSchema, rawSettings);
-
-  if (parseResult.success) {
-    return parseResult.output;
-  }
-  console.error("Invalid settings format in storage:", parseResult.issues);
-
-  return DEFAULT_SETTINGS;
+  return await settingItem.getValue();
 }
 
-export async function saveSettings(settings: Settings): Promise<void> {
-  await browser.storage.sync.set({ [STORAGE_KEY]: settings });
+async function saveSettings(settings: Settings): Promise<void> {
+  await settingItem.setValue(settings);
 }
 
 export function findGestureByDirections(
@@ -75,19 +63,19 @@ export function findGestureByDirections(
 export async function importSettingsFromJson(
   jsonString: string,
 ): Promise<{ success: boolean; data?: Settings; error?: string }> {
-  const parseResult = safeParse(
+  const parsed = safeParse(
     pipe(string(), parseJson(), SettingsSchema),
     jsonString,
   );
 
-  if (parseResult.success) {
-    await saveSettings(parseResult.output);
-    return { success: true, data: parseResult.output };
+  if (parsed.success) {
+    await saveSettings(parsed.output);
+    return { success: true, data: parsed.output };
   }
 
   return {
     success: false,
-    error: `Invalid settings format: ${parseResult.issues[0]?.message}`,
+    error: `Invalid settings format: ${parsed.issues[0]?.message}`,
   };
 }
 

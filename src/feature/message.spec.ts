@@ -1,7 +1,3 @@
-/**
- * Tests for message parsing utilities and schemas
- */
-
 import { ValiError } from "valibot";
 import { describe, expect, it } from "vitest";
 import { parseMessage } from "./message";

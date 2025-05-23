@@ -1,9 +1,6 @@
 import { safeParse } from "valibot";
 import { describe, expect, test } from "vitest";
 import { type Direction, DirectionSchema } from "./direction";
-/**
- * Tests for setting module
- */
 import {
   type Gesture,
   GestureActionSchema,
@@ -44,7 +41,7 @@ describe("Valibot Schemas", () => {
   describe("GestureActionSchema", () => {
     test("validates valid gesture actions", () => {
       const validAction = {
-        name: "testAction",
+        name: "bookmark",
         args: ["arg1", 2, { key: "value" }],
       };
       const result = safeParse(GestureActionSchema, validAction);
@@ -62,7 +59,7 @@ describe("Valibot Schemas", () => {
 
       // Args not an array
       const result3 = safeParse(GestureActionSchema, {
-        name: "test",
+        name: "bookmark",
         args: "not an array",
       });
       expect(result3.success).toBe(false);
@@ -73,7 +70,7 @@ describe("Valibot Schemas", () => {
     test("validates valid gestures", () => {
       const validGesture = {
         inputs: ["UP", "DOWN"],
-        action: { name: "testAction", args: [] },
+        action: { name: "bookmark", args: [] },
       };
       const result = safeParse(GestureSchema, validGesture);
       expect(result.success).toBe(true);
@@ -82,7 +79,7 @@ describe("Valibot Schemas", () => {
     test("rejects invalid gestures", () => {
       // Missing inputs
       const result1 = safeParse(GestureSchema, {
-        action: { name: "test", args: [] },
+        action: { name: "bookmark", args: [] },
       });
       expect(result1.success).toBe(false);
 
@@ -108,11 +105,11 @@ describe("Valibot Schemas", () => {
         gestures: [
           {
             inputs: ["UP", "DOWN"],
-            action: { name: "testAction1", args: [] },
+            action: { name: "bookmark", args: [] },
           },
           {
             inputs: ["LEFT", "RIGHT"],
-            action: { name: "testAction2", args: [1, 2, 3] },
+            action: { name: "bookmark", args: [1, 2, 3] },
           },
         ],
       };
@@ -138,7 +135,7 @@ describe("Valibot Schemas", () => {
         gestures: [
           {
             inputs: ["INVALID"],
-            action: { name: "test", args: [] },
+            action: { name: "bookmark", args: [] },
           },
         ],
       });
@@ -152,12 +149,12 @@ describe("findGestureByDirections", () => {
     // Setup
     const gesture1: Gesture = {
       inputs: ["UP", "DOWN"],
-      action: { name: "test1", args: [] },
+      action: { name: "bookmark", args: [] },
     };
 
     const gesture2: Gesture = {
       inputs: ["LEFT", "RIGHT"],
-      action: { name: "test2", args: [] },
+      action: { name: "bookmark", args: [] },
     };
 
     const settings: Settings = {
@@ -177,7 +174,7 @@ describe("findGestureByDirections", () => {
     // Setup
     const gesture: Gesture = {
       inputs: ["UP", "DOWN"],
-      action: { name: "test", args: [] },
+      action: { name: "bookmark", args: [] },
     };
 
     const settings: Settings = {

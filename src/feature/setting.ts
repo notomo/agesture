@@ -8,10 +8,11 @@ import {
   string,
   unknown,
 } from "valibot";
+import { ActionNameSchema } from "./action";
 import { type Direction, DirectionSchema, directionEquals } from "./direction";
 
 export const GestureActionSchema = object({
-  name: string(),
+  name: ActionNameSchema,
   args: array(unknown()),
 });
 

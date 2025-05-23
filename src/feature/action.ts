@@ -9,17 +9,16 @@ import { type InferOutput, literal, union } from "valibot";
 import type { ActionContext } from "./action-context";
 
 async function bookmarkAction({ background }: ActionContext) {
-  const { tab } = background;
-
+  const tab = await background.getCurrentTabInfo();
   await browser.bookmarks.create({
-    url: tab.url || "",
-    title: tab.title || "Untitled",
+    url: tab.url,
+    title: tab.title,
   });
 }
 
 export const ActionNameSchema = union([literal("bookmark")]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
-type Action = (context: ActionContext) => void;
+type Action = (context: ActionContext) => Promise<void>;
 
 export const actions = {
   bookmark: bookmarkAction,

@@ -67,7 +67,7 @@ export const App = () => {
       }
       hasDirection = true;
 
-      const context = buildContentActionContext(directions.join(""));
+      const context = buildContentActionContext();
       await browser.runtime.sendMessage({
         type: "gesture",
         directions,

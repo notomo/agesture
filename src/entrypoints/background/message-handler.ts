@@ -24,6 +24,6 @@ export async function handleMessage(rawMessage: unknown): Promise<void> {
 
   const actionName = gesture.action.name;
   const action = actions[actionName];
-  const context = await buildActionContext(message.context);
+  const context = buildActionContext(message.context);
   await action(context);
 }

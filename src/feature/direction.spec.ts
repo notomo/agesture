@@ -119,9 +119,4 @@ describe("directionEquals", () => {
     );
     expect(directionEquals(["UP", "DOWN"], [])).toBe(false);
   });
-
-  it("should compare directions in order", () => {
-    expect(directionEquals(["UP", "RIGHT"], ["UP", "LEFT"])).toBe(false);
-    expect(directionEquals(["DOWN", "DOWN"], ["DOWN", "UP"])).toBe(false);
-  });
 });

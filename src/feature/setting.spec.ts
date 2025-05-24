@@ -1,24 +1,20 @@
 import { describe, expect, it, test } from "vitest";
-import {
-  exportSettingsToJson,
-  findGestureByDirections,
-  importSettingsFromJson,
-} from "./setting";
+import { exportSettingToJson, findGesture, importSetting } from "./setting";
 
 describe("import and export", () => {
   it("can deal default setting", async () => {
-    const exported = await exportSettingsToJson();
-    await importSettingsFromJson(exported);
+    const exported = await exportSettingToJson();
+    await importSetting(exported);
 
-    const got = await exportSettingsToJson();
+    const got = await exportSettingToJson();
 
     expect(got).toEqual(exported);
   });
 });
 
-describe("findGestureByDirections", () => {
+describe("find gesture", () => {
   test("returns the matching gesture when found", () => {
-    const got = findGestureByDirections(
+    const got = findGesture(
       {
         gestures: [
           {
@@ -41,7 +37,7 @@ describe("findGestureByDirections", () => {
   });
 
   test("returns undefined when no matching gesture is found", () => {
-    const got = findGestureByDirections(
+    const got = findGesture(
       {
         gestures: [
           {
@@ -57,7 +53,7 @@ describe("findGestureByDirections", () => {
   });
 
   test("returns undefined when gestures array is empty", () => {
-    const got = findGestureByDirections(
+    const got = findGesture(
       {
         gestures: [],
       },

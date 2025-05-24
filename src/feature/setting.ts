@@ -22,12 +22,12 @@ const GestureSchema = object({
 });
 type Gesture = InferOutput<typeof GestureSchema>;
 
-const SettingsSchema = object({
+const SettingSchema = object({
   gestures: array(GestureSchema),
 });
-type Settings = InferOutput<typeof SettingsSchema>;
+type Setting = InferOutput<typeof SettingSchema>;
 
-export const DEFAULT_SETTINGS: Settings = {
+export const DEFAULT_SETTING: Setting = {
   gestures: [
     {
       inputs: ["RIGHT", "DOWN"],
@@ -39,47 +39,47 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
 };
 
-const settingItem = storage.defineItem<Settings>("local:gestureSettings", {
-  defaultValue: DEFAULT_SETTINGS,
+const settingItem = storage.defineItem<Setting>("local:gestureSetting", {
+  defaultValue: DEFAULT_SETTING,
 });
 
-export async function getSettings(): Promise<Settings> {
+export async function getSetting(): Promise<Setting> {
   return await settingItem.getValue();
 }
 
-async function saveSettings(settings: Settings): Promise<void> {
-  await settingItem.setValue(settings);
+async function saveSetting(setting: Setting): Promise<void> {
+  await settingItem.setValue(setting);
 }
 
-export function findGestureByDirections(
-  settings: Settings,
+export function findGesture(
+  setting: Setting,
   directions: Direction[],
 ): Gesture | undefined {
-  return settings.gestures.find((gesture) => {
+  return setting.gestures.find((gesture) => {
     return directionEquals(gesture.inputs, directions);
   });
 }
 
-export async function importSettingsFromJson(
+export async function importSetting(
   jsonString: string,
-): Promise<{ success: boolean; data?: Settings; error?: string }> {
+): Promise<{ success: boolean; data?: Setting; error?: string }> {
   const parsed = safeParse(
-    pipe(string(), parseJson(), SettingsSchema),
+    pipe(string(), parseJson(), SettingSchema),
     jsonString,
   );
 
   if (parsed.success) {
-    await saveSettings(parsed.output);
+    await saveSetting(parsed.output);
     return { success: true, data: parsed.output };
   }
 
   return {
     success: false,
-    error: `Invalid settings format: ${parsed.issues[0]?.message}`,
+    error: `Invalid setting format: ${parsed.issues[0]?.message}`,
   };
 }
 
-export async function exportSettingsToJson(): Promise<string> {
-  const settings = await getSettings();
-  return JSON.stringify(settings, null, 2);
+export async function exportSettingToJson(): Promise<string> {
+  const setting = await getSetting();
+  return JSON.stringify(setting, null, 2);
 }

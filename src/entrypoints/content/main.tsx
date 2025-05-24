@@ -1,5 +1,5 @@
+import { buildGestureMessage } from "@/src/feature/message";
 import { useEffect } from "react";
-import { buildContentActionContext } from "../../feature/action-context";
 import { type Direction, detectDirection } from "../../feature/direction";
 
 export const App = () => {
@@ -67,12 +67,7 @@ export const App = () => {
       }
       hasDirection = true;
 
-      const context = buildContentActionContext();
-      await browser.runtime.sendMessage({
-        type: "gesture",
-        directions,
-        context,
-      });
+      await browser.runtime.sendMessage(buildGestureMessage(directions));
     };
 
     const handleContextMenu = (e: MouseEvent) => {

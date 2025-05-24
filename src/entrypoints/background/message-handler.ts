@@ -4,16 +4,14 @@
  * Handles messages from content scripts and executes corresponding actions
  */
 
-import { actions } from "../../feature/action";
-import { buildActionContext } from "../../feature/action-context";
+import { callAction } from "../../feature/action";
 import { parseMessage } from "../../feature/message";
-import { findGestureByDirections, getSettings } from "../../feature/setting";
+import { findGesture, getSetting } from "../../feature/setting";
 
 export async function handleMessage(rawMessage: unknown): Promise<void> {
   const message = parseMessage(rawMessage);
-  const settings = await getSettings();
-  const gesture = findGestureByDirections(settings, message.directions);
-
+  const setting = await getSetting();
+  const gesture = findGesture(setting, message.directions);
   if (!gesture) {
     console.log(
       "No matching gesture found for directions:",
@@ -22,8 +20,8 @@ export async function handleMessage(rawMessage: unknown): Promise<void> {
     return;
   }
 
-  const actionName = gesture.action.name;
-  const action = actions[actionName];
-  const context = buildActionContext(message.context);
-  await action(context);
+  await callAction({
+    actionName: gesture.action.name,
+    contentContext: message.context,
+  });
 }

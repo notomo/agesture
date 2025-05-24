@@ -5,7 +5,9 @@
  * to provide contextual information for their execution.
  */
 
-async function getCurrentTabInfo() {
+import { type InferOutput, object, string } from "valibot";
+
+async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   const currentTab = tabs.at(0);
   if (!currentTab?.id) {
@@ -22,9 +24,12 @@ function getSelectedText(): string {
   return window.getSelection()?.toString() || "";
 }
 
-type ContentActionContext = {
-  selectedText: string;
-};
+export const ContentActionContextSchema = object({
+  selectedText: string(),
+});
+
+type ContentActionContext = InferOutput<typeof ContentActionContextSchema>;
+
 export function buildContentActionContext(): ContentActionContext {
   return {
     selectedText: getSelectedText(),
@@ -34,9 +39,7 @@ export function buildContentActionContext(): ContentActionContext {
 export function buildActionContext(contentContext: ContentActionContext) {
   return {
     content: contentContext,
-    background: {
-      getCurrentTabInfo,
-    },
+    getCurrentTab,
   };
 }
 

@@ -1,12 +1,12 @@
 import { buildGestureMessage } from "@/src/feature/message";
 import { useEffect } from "react";
-import { type Direction, detectDirection } from "../../feature/direction";
+import { fromPoints } from "../../feature/direction";
 
 export const App = () => {
   useEffect(() => {
     let isGesturing = false;
     let rightButtonDown = false;
-    let positions: { x: number; y: number }[] = [];
+    let points: { x: number; y: number }[] = [];
 
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 2) {
@@ -14,7 +14,7 @@ export const App = () => {
       }
 
       rightButtonDown = true;
-      positions.push({ x: e.clientX, y: e.clientY });
+      points.push({ x: e.clientX, y: e.clientY });
 
       e.preventDefault();
     };
@@ -24,7 +24,7 @@ export const App = () => {
         return;
       }
       isGesturing = true;
-      positions.push({ x: e.clientX, y: e.clientY });
+      points.push({ x: e.clientX, y: e.clientY });
     };
 
     let hasDirection = false;
@@ -38,29 +38,10 @@ export const App = () => {
         return;
       }
 
-      const directions: Direction[] = [];
-      const minDistance = 20;
-      for (let i = 1; i < positions.length; i++) {
-        const prevPosition = positions[i - 1];
-        const currentPosition = positions[i];
-        if (prevPosition && currentPosition) {
-          const direction = detectDirection(
-            prevPosition,
-            currentPosition,
-            minDistance,
-          );
-          if (
-            direction &&
-            (directions.length === 0 ||
-              direction !== directions[directions.length - 1])
-          ) {
-            directions.push(direction);
-          }
-        }
-      }
+      const directions = fromPoints({ points, minDistance: 20 });
 
       isGesturing = false;
-      positions = [];
+      points = [];
 
       if (directions.length === 0) {
         return;

@@ -12,39 +12,12 @@ export const DirectionSchema = union([
 
 export type Direction = InferOutput<typeof DirectionSchema>;
 
-export interface Point {
+type Point = {
   x: number;
   y: number;
-}
-
-export interface DirectionConfig {
-  // Minimum distance (in pixels) for direction detection
-  minDistance: number;
-}
-
-export interface DirectionState {
-  config: DirectionConfig;
-  points: Point[];
-  directions: Direction[];
-  lastDirection: Direction | null;
-}
-
-const DEFAULT_CONFIG: DirectionConfig = {
-  minDistance: 20,
 };
 
-export function createInitialState(
-  config: Partial<DirectionConfig> = {},
-): DirectionState {
-  return {
-    config: { ...DEFAULT_CONFIG, ...config },
-    points: [],
-    directions: [],
-    lastDirection: null,
-  };
-}
-
-export function detectDirection(
+function detectDirection(
   from: Point,
   to: Point,
   minDistance: number,
@@ -63,40 +36,31 @@ export function detectDirection(
   return dy > 0 ? "DOWN" : "UP";
 }
 
-export function addPoint(state: DirectionState, point: Point): DirectionState {
-  const newPoints = [...state.points, point];
+export function fromPoints({
+  points,
+  minDistance,
+}: { points: Point[]; minDistance: number }) {
+  const directions: Direction[] = [];
 
-  if (state.points.length === 0) {
-    return {
-      ...state,
-      points: newPoints,
-    };
+  let previous = points.at(0);
+  if (!previous) {
+    return [];
   }
 
-  const lastPoint = state.points[state.points.length - 1];
+  for (const current of points) {
+    const direction = detectDirection(previous, current, minDistance);
+    if (!direction) {
+      continue;
+    }
+    previous = current;
 
-  if (!lastPoint) {
-    return {
-      ...state,
-      points: newPoints,
-    };
+    if (directions.at(-1) === direction) {
+      continue;
+    }
+
+    directions.push(direction);
   }
-
-  const direction = detectDirection(lastPoint, point, state.config.minDistance);
-
-  if (!direction || direction === state.lastDirection) {
-    return {
-      ...state,
-      points: newPoints,
-    };
-  }
-
-  return {
-    ...state,
-    points: newPoints,
-    directions: [...state.directions, direction],
-    lastDirection: direction,
-  };
+  return directions;
 }
 
 export function directionEquals(a: Direction[], b: Direction[]): boolean {
@@ -105,10 +69,4 @@ export function directionEquals(a: Direction[], b: Direction[]): boolean {
   }
 
   return a.every((dir, index) => dir === b[index]);
-}
-
-export function createDirectionRecognizer(
-  config?: Partial<DirectionConfig>,
-): DirectionState {
-  return createInitialState(config);
 }

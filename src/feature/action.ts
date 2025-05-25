@@ -33,15 +33,21 @@ async function reloadAction({ getCurrentTab }: ActionContext) {
 
 async function scrollTopAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.tabs.executeScript(tab.id, {
-    code: "window.scrollTo(0, 0);",
+  await browser.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => {
+      window.scrollTo(0, 0);
+    },
   });
 }
 
 async function scrollBottomAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.tabs.executeScript(tab.id, {
-    code: "window.scrollTo(0, document.body.scrollHeight);",
+  await browser.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => {
+      window.scrollTo(0, document.body.scrollHeight);
+    },
   });
 }
 

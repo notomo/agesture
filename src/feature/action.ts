@@ -57,8 +57,10 @@ async function searchAction({ content }: ActionContext) {
     return;
   }
 
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(selectedText)}`;
-  await browser.tabs.create({ url: searchUrl });
+  await browser.search.query({
+    text: selectedText,
+    disposition: "NEW_TAB",
+  });
 }
 
 export const ActionNameSchema = union([

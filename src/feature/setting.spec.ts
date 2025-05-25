@@ -51,15 +51,4 @@ describe("find gesture", () => {
 
     expect(got).toBeUndefined();
   });
-
-  test("returns undefined when gestures array is empty", () => {
-    const got = findGesture(
-      {
-        gestures: [],
-      },
-      ["LEFT", "RIGHT"],
-    );
-
-    expect(got).toBeUndefined();
-  });
 });

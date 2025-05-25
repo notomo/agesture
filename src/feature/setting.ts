@@ -67,15 +67,18 @@ export async function importSetting(
     pipe(string(), parseJson(), SettingSchema),
     jsonString,
   );
-
-  if (parsed.success) {
-    await saveSetting(parsed.output);
-    return { success: true, data: parsed.output };
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: `Invalid setting format: ${parsed.issues[0]?.message}`,
+    };
   }
 
+  await saveSetting(parsed.output);
+
   return {
-    success: false,
-    error: `Invalid setting format: ${parsed.issues[0]?.message}`,
+    success: true,
+    data: parsed.output,
   };
 }
 

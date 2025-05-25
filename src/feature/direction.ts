@@ -40,13 +40,12 @@ export function fromPoints({
   points,
   minDistance,
 }: { points: Point[]; minDistance: number }) {
-  const directions: Direction[] = [];
-
   let previous = points.at(0);
   if (!previous) {
     return [];
   }
 
+  const directions: Direction[] = [];
   for (const current of points) {
     const direction = detectDirection(previous, current, minDistance);
     if (!direction) {

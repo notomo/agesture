@@ -14,7 +14,7 @@
     "check": "biome check .",
     "test": "vitest run",
     "all": "npm run format && npm run check && npm run typecheck && npm run test",
-    "for_agent": "bash ./tool/run.sh format && bash ./tool/run.sh check && bash ./tool/run.sh typecheck && bash ./tool/run.sh test"
+    "for_agent": "bash ./script/run.sh format && bash ./script/run.sh check && bash ./script/run.sh typecheck && bash ./script/run.sh test"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

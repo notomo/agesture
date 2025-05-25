@@ -26,10 +26,16 @@ async function goBackwardAction({ getCurrentTab }: ActionContext) {
   await browser.tabs.goBack(tab.id);
 }
 
+async function reloadAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.tabs.reload(tab.id);
+}
+
 export const ActionNameSchema = union([
   literal("bookmark"),
   literal("goForward"),
   literal("goBackward"),
+  literal("reload"),
 ]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
 type Action = (context: ActionContext) => Promise<void>;
@@ -38,6 +44,7 @@ const actions = {
   bookmark: bookmarkAction,
   goForward: goForwardAction,
   goBackward: goBackwardAction,
+  reload: reloadAction,
 } as const satisfies Record<ActionName, Action>;
 
 export async function callAction({

@@ -16,12 +16,28 @@ async function bookmarkAction({ getCurrentTab }: ActionContext) {
   });
 }
 
-export const ActionNameSchema = union([literal("bookmark")]);
+async function goForwardAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.tabs.goForward(tab.id);
+}
+
+async function goBackwardAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.tabs.goBack(tab.id);
+}
+
+export const ActionNameSchema = union([
+  literal("bookmark"),
+  literal("goForward"),
+  literal("goBackward"),
+]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
 type Action = (context: ActionContext) => Promise<void>;
 
 const actions = {
   bookmark: bookmarkAction,
+  goForward: goForwardAction,
+  goBackward: goBackwardAction,
 } as const satisfies Record<ActionName, Action>;
 
 export async function callAction({

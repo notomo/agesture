@@ -31,11 +31,27 @@ async function reloadAction({ getCurrentTab }: ActionContext) {
   await browser.tabs.reload(tab.id);
 }
 
+async function scrollTopAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.tabs.executeScript(tab.id, {
+    code: "window.scrollTo(0, 0);",
+  });
+}
+
+async function scrollBottomAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.tabs.executeScript(tab.id, {
+    code: "window.scrollTo(0, document.body.scrollHeight);",
+  });
+}
+
 export const ActionNameSchema = union([
   literal("bookmark"),
   literal("goForward"),
   literal("goBackward"),
   literal("reload"),
+  literal("scrollTop"),
+  literal("scrollBottom"),
 ]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
 type Action = (context: ActionContext) => Promise<void>;
@@ -45,6 +61,8 @@ const actions = {
   goForward: goForwardAction,
   goBackward: goBackwardAction,
   reload: reloadAction,
+  scrollTop: scrollTopAction,
+  scrollBottom: scrollBottomAction,
 } as const satisfies Record<ActionName, Action>;
 
 export async function callAction({

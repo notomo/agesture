@@ -30,6 +30,20 @@ type Setting = InferOutput<typeof SettingSchema>;
 export const DEFAULT_SETTING: Setting = {
   gestures: [
     {
+      inputs: ["DOWN", "UP"],
+      action: {
+        name: "scrollTop",
+        args: [],
+      },
+    },
+    {
+      inputs: ["UP", "DOWN"],
+      action: {
+        name: "scrollBottom",
+        args: [],
+      },
+    },
+    {
       inputs: ["RIGHT", "LEFT"],
       action: {
         name: "reload",

@@ -51,6 +51,16 @@ async function scrollBottomAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function searchAction({ content }: ActionContext) {
+  const selectedText = content.selectedText.trim();
+  if (!selectedText) {
+    return;
+  }
+
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(selectedText)}`;
+  await browser.tabs.create({ url: searchUrl });
+}
+
 export const ActionNameSchema = union([
   literal("bookmark"),
   literal("goForward"),
@@ -58,6 +68,7 @@ export const ActionNameSchema = union([
   literal("reload"),
   literal("scrollTop"),
   literal("scrollBottom"),
+  literal("search"),
 ]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
 type Action = (context: ActionContext) => Promise<void>;
@@ -69,6 +80,7 @@ const actions = {
   reload: reloadAction,
   scrollTop: scrollTopAction,
   scrollBottom: scrollBottomAction,
+  search: searchAction,
 } as const satisfies Record<ActionName, Action>;
 
 export async function callAction({

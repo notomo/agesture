@@ -19,11 +19,11 @@ describe("find gesture", () => {
         gestures: [
           {
             inputs: ["UP", "DOWN"],
-            action: { name: "bookmark", args: [] },
+            action: { name: "bookmark" },
           },
           {
             inputs: ["LEFT", "RIGHT"],
-            action: { name: "bookmark", args: [] },
+            action: { name: "bookmark" },
           },
         ],
       },
@@ -32,7 +32,7 @@ describe("find gesture", () => {
 
     expect(got).toEqual({
       inputs: ["LEFT", "RIGHT"],
-      action: { name: "bookmark", args: [] },
+      action: { name: "bookmark" },
     });
   });
 
@@ -42,7 +42,7 @@ describe("find gesture", () => {
         gestures: [
           {
             inputs: ["UP", "DOWN"],
-            action: { name: "bookmark", args: [] },
+            action: { name: "bookmark" },
           },
         ],
       },

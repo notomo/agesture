@@ -5,7 +5,14 @@
  * Each action is implemented as an async function
  */
 
-import { type InferOutput, literal, union } from "valibot";
+import {
+  type InferOutput,
+  boolean,
+  literal,
+  object,
+  optional,
+  union,
+} from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
 
 async function bookmarkAction({ getCurrentTab }: ActionContext) {
@@ -63,17 +70,29 @@ async function searchAction({ content }: ActionContext) {
   });
 }
 
-async function openLinkAction({ content }: ActionContext) {
+const OpenLinkActionSchema = object({
+  name: literal("openLink"),
+  args: object({
+    active: optional(boolean(), true),
+  }),
+});
+type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
+
+async function openLinkAction({
+  content,
+  active,
+}: ActionContext & OpenLinkActionArgs) {
   if (!content.url) {
     return;
   }
 
   await browser.tabs.create({
     url: content.url,
+    active,
   });
 }
 
-export const ActionNameSchema = union([
+const NoArgsActionNameSchema = union([
   literal("bookmark"),
   literal("goForward"),
   literal("goBackward"),
@@ -81,10 +100,20 @@ export const ActionNameSchema = union([
   literal("scrollTop"),
   literal("scrollBottom"),
   literal("search"),
-  literal("openLink"),
 ]);
+
+const NoArgsActionSchema = object({
+  name: NoArgsActionNameSchema,
+});
+
+export const GestureActionSchema = union([
+  OpenLinkActionSchema,
+  NoArgsActionSchema,
+]);
+
+const ActionNameSchema = union([NoArgsActionNameSchema, literal("openLink")]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
-type Action = (context: ActionContext) => Promise<void>;
+type GestureAction = InferOutput<typeof GestureActionSchema>;
 
 const actions = {
   bookmark: bookmarkAction,
@@ -95,16 +124,23 @@ const actions = {
   scrollBottom: scrollBottomAction,
   search: searchAction,
   openLink: openLinkAction,
-} as const satisfies Record<ActionName, Action>;
+} as const satisfies Record<ActionName, unknown>;
 
 export async function callAction({
-  actionName,
+  gestureAction,
   contentContext,
 }: {
-  actionName: ActionName;
+  gestureAction: GestureAction;
   contentContext: ActionContext["content"];
 }) {
-  const action = actions[actionName];
   const context = buildActionContext(contentContext);
+
+  if (gestureAction.name === "openLink") {
+    const action = actions[gestureAction.name];
+    await action({ ...context, ...gestureAction.args });
+    return;
+  }
+
+  const action = actions[gestureAction.name];
   await action(context);
 }

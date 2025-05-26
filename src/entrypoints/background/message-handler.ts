@@ -21,7 +21,7 @@ export async function handleMessage(rawMessage: unknown): Promise<void> {
   }
 
   await callAction({
-    actionName: gesture.action.name,
+    gestureAction: gesture.action,
     contentContext: message.context,
   });
 }

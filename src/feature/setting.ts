@@ -6,15 +6,9 @@ import {
   pipe,
   safeParse,
   string,
-  unknown,
 } from "valibot";
-import { ActionNameSchema } from "./action";
+import { GestureActionSchema } from "./action";
 import { type Direction, DirectionSchema, directionEquals } from "./direction";
-
-const GestureActionSchema = object({
-  name: ActionNameSchema,
-  args: array(unknown()),
-});
 
 const GestureSchema = object({
   inputs: array(DirectionSchema),
@@ -33,63 +27,66 @@ export const DEFAULT_SETTING: Setting = {
       inputs: ["UP"],
       action: {
         name: "openLink",
-        args: [],
+        args: {
+          active: true,
+        },
+      },
+    },
+    {
+      inputs: ["DOWN"],
+      action: {
+        name: "openLink",
+        args: {
+          active: false,
+        },
       },
     },
     {
       inputs: ["DOWN", "RIGHT"],
       action: {
         name: "search",
-        args: [],
       },
     },
     {
       inputs: ["DOWN", "UP"],
       action: {
         name: "scrollTop",
-        args: [],
       },
     },
     {
       inputs: ["UP", "DOWN"],
       action: {
         name: "scrollBottom",
-        args: [],
       },
     },
     {
       inputs: ["RIGHT", "LEFT"],
       action: {
         name: "reload",
-        args: [],
       },
     },
     {
       inputs: ["RIGHT"],
       action: {
         name: "goForward",
-        args: [],
       },
     },
     {
       inputs: ["LEFT"],
       action: {
         name: "goBackward",
-        args: [],
       },
     },
     {
       inputs: ["DOWN"],
       action: {
         name: "reload",
-        args: [],
       },
     },
     {
       inputs: ["RIGHT", "DOWN"],
       action: {
         name: "bookmark",
-        args: [],
       },
     },
   ],

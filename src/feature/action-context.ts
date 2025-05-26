@@ -5,7 +5,7 @@
  * to provide contextual information for their execution.
  */
 
-import { type InferOutput, object, string } from "valibot";
+import { type InferOutput, object, optional, string } from "valibot";
 
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -24,15 +24,36 @@ function getSelectedText(): string {
   return window.getSelection()?.toString() || "";
 }
 
+function findLinkUrl(point: { x: number; y: number }): string | undefined {
+  const element = document.elementFromPoint(point.x, point.y);
+  if (!element) {
+    return undefined;
+  }
+
+  // Check if the element itself is a link
+  if (element.tagName === "A") {
+    return (element as HTMLAnchorElement).href;
+  }
+
+  // Check if any parent element is a link
+  const linkElement = element.closest("a");
+  return linkElement?.href;
+}
+
 export const ContentActionContextSchema = object({
   selectedText: string(),
+  url: optional(string()),
 });
 
 type ContentActionContext = InferOutput<typeof ContentActionContextSchema>;
 
-export function buildContentActionContext(): ContentActionContext {
+export function buildContentActionContext(point?: {
+  x: number;
+  y: number;
+}): ContentActionContext {
   return {
     selectedText: getSelectedText(),
+    url: point ? findLinkUrl(point) : undefined,
   };
 }
 

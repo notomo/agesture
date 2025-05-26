@@ -23,10 +23,13 @@ export function parseMessage(message: unknown) {
   return parse(GestureMessageSchema, message);
 }
 
-export function buildGestureMessage(directions: Direction[]): GestureMessage {
+export function buildGestureMessage(
+  directions: Direction[],
+  startPoint?: { x: number; y: number },
+): GestureMessage {
   return {
     type: "gesture",
     directions,
-    context: buildContentActionContext(),
+    context: buildContentActionContext(startPoint),
   };
 }

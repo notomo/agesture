@@ -7,6 +7,7 @@ export const App = () => {
     let isGesturing = false;
     let rightButtonDown = false;
     let points: { x: number; y: number }[] = [];
+    let startPoint: { x: number; y: number } | undefined;
 
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 2) {
@@ -14,7 +15,8 @@ export const App = () => {
       }
 
       rightButtonDown = true;
-      points.push({ x: e.clientX, y: e.clientY });
+      startPoint = { x: e.clientX, y: e.clientY };
+      points.push(startPoint);
 
       e.preventDefault();
     };
@@ -48,7 +50,9 @@ export const App = () => {
       }
       hasDirection = true;
 
-      await browser.runtime.sendMessage(buildGestureMessage(directions));
+      await browser.runtime.sendMessage(
+        buildGestureMessage(directions, startPoint),
+      );
     };
 
     const handleContextMenu = (e: MouseEvent) => {

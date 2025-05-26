@@ -47,13 +47,13 @@ export const ContentActionContextSchema = object({
 
 type ContentActionContext = InferOutput<typeof ContentActionContextSchema>;
 
-export function buildContentActionContext(point?: {
+export function buildContentActionContext(point: {
   x: number;
   y: number;
 }): ContentActionContext {
   return {
     selectedText: getSelectedText(),
-    url: point ? findLinkUrl(point) : undefined,
+    url: findLinkUrl(point),
   };
 }
 

@@ -25,7 +25,7 @@ export function parseMessage(message: unknown) {
 
 export function buildGestureMessage(
   directions: Direction[],
-  startPoint?: { x: number; y: number },
+  startPoint: { x: number; y: number },
 ): GestureMessage {
   return {
     type: "gesture",

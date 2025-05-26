@@ -7,7 +7,6 @@ export const App = () => {
     let isGesturing = false;
     let rightButtonDown = false;
     let points: { x: number; y: number }[] = [];
-    let startPoint: { x: number; y: number } | undefined;
 
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 2) {
@@ -15,8 +14,7 @@ export const App = () => {
       }
 
       rightButtonDown = true;
-      startPoint = { x: e.clientX, y: e.clientY };
-      points.push(startPoint);
+      points.push({ x: e.clientX, y: e.clientY });
 
       e.preventDefault();
     };
@@ -42,13 +40,20 @@ export const App = () => {
 
       const directions = fromPoints({ points, minDistance: 20 });
 
-      isGesturing = false;
-      points = [];
-
       if (directions.length === 0) {
+        isGesturing = false;
+        points = [];
         return;
       }
       hasDirection = true;
+
+      const startPoint = points.at(0);
+      if (!startPoint) {
+        throw new Error("startPoint should exist when gesture is triggered");
+      }
+
+      isGesturing = false;
+      points = [];
 
       await browser.runtime.sendMessage(
         buildGestureMessage(directions, startPoint),

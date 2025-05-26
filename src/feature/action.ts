@@ -63,6 +63,16 @@ async function searchAction({ content }: ActionContext) {
   });
 }
 
+async function openLinkAction({ content }: ActionContext) {
+  if (!content.url) {
+    return;
+  }
+
+  await browser.tabs.create({
+    url: content.url,
+  });
+}
+
 export const ActionNameSchema = union([
   literal("bookmark"),
   literal("goForward"),
@@ -71,6 +81,7 @@ export const ActionNameSchema = union([
   literal("scrollTop"),
   literal("scrollBottom"),
   literal("search"),
+  literal("openLink"),
 ]);
 type ActionName = InferOutput<typeof ActionNameSchema>;
 type Action = (context: ActionContext) => Promise<void>;
@@ -83,6 +94,7 @@ const actions = {
   scrollTop: scrollTopAction,
   scrollBottom: scrollBottomAction,
   search: searchAction,
+  openLink: openLinkAction,
 } as const satisfies Record<ActionName, Action>;
 
 export async function callAction({

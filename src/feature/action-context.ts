@@ -29,13 +29,6 @@ function findLinkUrl(point: { x: number; y: number }): string | undefined {
   if (!element) {
     return undefined;
   }
-
-  // Check if the element itself is a link
-  if (element.tagName === "A") {
-    return (element as HTMLAnchorElement).href;
-  }
-
-  // Check if any parent element is a link
   const linkElement = element.closest("a");
   return linkElement?.href;
 }

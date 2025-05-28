@@ -1,10 +1,14 @@
 import { buildGestureMessage } from "@/src/feature/message";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fromPoints } from "../../feature/direction";
+import { Canvas } from "./Canvas";
 
 export const App = () => {
+  const [gesturePoints, setGesturePoints] = useState<
+    { x: number; y: number }[]
+  >([]);
+
   useEffect(() => {
-    let isGesturing = false;
     let rightButtonDown = false;
     let points: { x: number; y: number }[] = [];
 
@@ -14,7 +18,7 @@ export const App = () => {
       }
 
       rightButtonDown = true;
-      points.push({ x: e.clientX, y: e.clientY });
+      points = [{ x: e.clientX, y: e.clientY }];
 
       e.preventDefault();
     };
@@ -23,8 +27,8 @@ export const App = () => {
       if (!rightButtonDown) {
         return;
       }
-      isGesturing = true;
       points.push({ x: e.clientX, y: e.clientY });
+      setGesturePoints([...points]);
     };
 
     let hasDirection = false;
@@ -34,14 +38,16 @@ export const App = () => {
       }
 
       rightButtonDown = false;
-      if (!isGesturing) {
+      if (points.length <= 1) {
+        setGesturePoints([]);
+        points = [];
         return;
       }
 
       const directions = fromPoints({ points, minDistance: 20 });
 
       if (directions.length === 0) {
-        isGesturing = false;
+        setGesturePoints([]);
         points = [];
         return;
       }
@@ -52,7 +58,7 @@ export const App = () => {
         throw new Error("startPoint should exist when gesture is triggered");
       }
 
-      isGesturing = false;
+      setGesturePoints([]);
       points = [];
 
       await browser.runtime.sendMessage(
@@ -81,5 +87,6 @@ export const App = () => {
     };
   }, []);
 
-  return null; // TODO
+  const isVisible = gesturePoints.length > 1;
+  return <Canvas points={gesturePoints} isVisible={isVisible} />;
 };

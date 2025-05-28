@@ -78,13 +78,7 @@ export const DEFAULT_SETTING: Setting = {
       },
     },
     {
-      inputs: ["DOWN"],
-      action: {
-        name: "reload",
-      },
-    },
-    {
-      inputs: ["RIGHT", "DOWN"],
+      inputs: ["UP", "RIGHT"],
       action: {
         name: "bookmark",
       },

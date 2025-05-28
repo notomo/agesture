@@ -9,6 +9,7 @@ export default defineConfig({
     description: "A browser extension for mouse gestures",
     version: "0.0.1",
     permissions: ["storage", "tabs", "bookmarks", "scripting", "search"],
+    host_permissions: ["http://*/*", "https://*/*"],
     action: {
       default_popup: "src/entrypoints/popup/index.html",
     },

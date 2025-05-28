@@ -94,10 +94,6 @@ export async function getSetting(): Promise<Setting> {
   return await settingItem.getValue();
 }
 
-async function saveSetting(setting: Setting): Promise<void> {
-  await settingItem.setValue(setting);
-}
-
 export function findGesture(
   setting: Setting,
   directions: Direction[],
@@ -121,15 +117,10 @@ export async function importSetting(
     };
   }
 
-  await saveSetting(parsed.output);
+  await settingItem.setValue(parsed.output);
 
   return {
     success: true,
     data: parsed.output,
   };
-}
-
-export async function exportSettingToJson(): Promise<string> {
-  const setting = await getSetting();
-  return JSON.stringify(setting, null, 2);
 }

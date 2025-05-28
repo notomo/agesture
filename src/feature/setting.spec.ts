@@ -1,14 +1,14 @@
 import { describe, expect, it, test } from "vitest";
-import { exportSettingToJson, findGesture, importSetting } from "./setting";
+import { findGesture, getSetting, importSetting } from "./setting";
 
 describe("import and export", () => {
   it("can deal default setting", async () => {
-    const exported = await exportSettingToJson();
-    await importSetting(exported);
+    const setting = await getSetting();
+    await importSetting(JSON.stringify(setting));
 
-    const got = await exportSettingToJson();
+    const got = await getSetting();
 
-    expect(got).toEqual(exported);
+    expect(got).toEqual(setting);
   });
 });
 

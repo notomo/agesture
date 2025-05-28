@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   DEFAULT_SETTING,
-  exportSettingToJson,
+  getSetting,
   importSetting,
 } from "../../feature/setting";
 import { cn } from "../../lib/tailwind";
@@ -24,8 +24,8 @@ function App() {
 
   useEffect(() => {
     async function loadSetting() {
-      const loadedSettingJson = await exportSettingToJson();
-      setSettingJson(loadedSettingJson);
+      const setting = await getSetting();
+      setSettingJson(JSON.stringify(setting, null, 2));
     }
 
     loadSetting();

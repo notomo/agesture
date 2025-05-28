@@ -102,18 +102,15 @@ const NoArgsActionNameSchema = union([
   literal("search"),
 ]);
 
-const NoArgsActionSchema = object({
-  name: NoArgsActionNameSchema,
-});
-
 export const GestureActionSchema = union([
   OpenLinkActionSchema,
-  NoArgsActionSchema,
+  object({
+    name: NoArgsActionNameSchema,
+  }),
 ]);
 
-const ActionNameSchema = union([NoArgsActionNameSchema, literal("openLink")]);
-type ActionName = InferOutput<typeof ActionNameSchema>;
 type GestureAction = InferOutput<typeof GestureActionSchema>;
+type ActionName = GestureAction["name"];
 
 const actions = {
   bookmark: bookmarkAction,

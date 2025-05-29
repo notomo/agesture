@@ -1,11 +1,10 @@
 import { buildGestureMessage } from "@/src/feature/message";
 import { useEffect, useState } from "react";
-import { fromPoints } from "../../feature/direction";
+import { type Point, fromPoints } from "../../feature/direction";
 import { Canvas } from "./Canvas";
 
 export const App = () => {
-  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
-  const [hasDirection, setHasDirection] = useState(false);
+  const [points, setPoints] = useState<Point[]>([]);
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -28,15 +27,17 @@ export const App = () => {
       }
 
       const directions = fromPoints({ points, minDistance: 20 });
-      const startPoint = points.at(0);
-
-      setPoints([]);
-
       if (directions.length === 0) {
+        setPoints([]);
         return;
       }
-      setHasDirection(true);
 
+      // to prevent context menu
+      setTimeout(() => {
+        setPoints([]);
+      });
+
+      const startPoint = points.at(0);
       if (!startPoint) {
         throw new Error("startPoint should exist when gesture is triggered");
       }
@@ -57,21 +58,19 @@ export const App = () => {
     };
   }, [points]);
 
-  const shouldPrevent = points.length > 0 || hasDirection;
+  const hasPoint = points.length > 0;
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
-      if (!shouldPrevent) {
+      if (!hasPoint) {
         return;
       }
-      setHasDirection(false);
       e.preventDefault();
     };
     document.addEventListener("contextmenu", handleContextMenu);
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, [shouldPrevent]);
+  }, [hasPoint]);
 
-  const isVisible = points.length > 1;
-  return <Canvas points={points} isVisible={isVisible} />;
+  return <Canvas points={points} />;
 };

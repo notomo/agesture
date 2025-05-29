@@ -2,15 +2,13 @@ import { useEffect, useRef } from "react";
 
 export const Canvas = ({
   points,
-  isVisible,
 }: {
   points: { x: number; y: number }[];
-  isVisible: boolean;
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = ref.current;
     if (!canvas) {
       return;
     }
@@ -47,13 +45,13 @@ export const Canvas = ({
     context.stroke();
   }, [points]);
 
-  if (!isVisible) {
+  if (points.length === 0) {
     return null;
   }
 
   return (
     <canvas
-      ref={canvasRef}
+      ref={ref}
       style={{
         position: "fixed",
         top: 0,

@@ -12,7 +12,7 @@ export const DirectionSchema = union([
 
 export type Direction = InferOutput<typeof DirectionSchema>;
 
-type Point = {
+export type Point = {
   x: number;
   y: number;
 };

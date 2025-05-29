@@ -4,89 +4,74 @@ import { fromPoints } from "../../feature/direction";
 import { Canvas } from "./Canvas";
 
 export const App = () => {
-  const [gesturePoints, setGesturePoints] = useState<
-    { x: number; y: number }[]
-  >([]);
+  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
+  const [hasDirection, setHasDirection] = useState(false);
 
   useEffect(() => {
-    let rightButtonDown = false;
-    let points: { x: number; y: number }[] = [];
-
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 2) {
         return;
       }
-
-      rightButtonDown = true;
-      points = [{ x: e.clientX, y: e.clientY }];
-
-      e.preventDefault();
+      setPoints([...points, { x: e.clientX, y: e.clientY }]);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!rightButtonDown) {
+      if (e.buttons !== 2) {
         return;
       }
-      points.push({ x: e.clientX, y: e.clientY });
-      setGesturePoints([...points]);
+      setPoints([...points, { x: e.clientX, y: e.clientY }]);
     };
 
-    let hasDirection = false;
     const handleMouseUp = async (e: MouseEvent) => {
       if (e.button !== 2) {
         return;
       }
 
-      rightButtonDown = false;
-      if (points.length <= 1) {
-        setGesturePoints([]);
-        points = [];
-        return;
-      }
-
       const directions = fromPoints({ points, minDistance: 20 });
+      const startPoint = points.at(0);
+
+      setPoints([]);
 
       if (directions.length === 0) {
-        setGesturePoints([]);
-        points = [];
         return;
       }
-      hasDirection = true;
+      setHasDirection(true);
 
-      const startPoint = points.at(0);
       if (!startPoint) {
         throw new Error("startPoint should exist when gesture is triggered");
       }
-
-      setGesturePoints([]);
-      points = [];
 
       await browser.runtime.sendMessage(
         buildGestureMessage(directions, startPoint),
       );
     };
 
-    const handleContextMenu = (e: MouseEvent) => {
-      if (!rightButtonDown && !hasDirection) {
-        return;
-      }
-      hasDirection = false;
-      e.preventDefault();
-    };
-
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("contextmenu", handleContextMenu);
 
     return () => {
       document.removeEventListener("mousedown", handleMouseDown);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [points]);
+
+  const shouldPrevent = points.length > 0 || hasDirection;
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      if (!shouldPrevent) {
+        return;
+      }
+      setHasDirection(false);
+      e.preventDefault();
+    };
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, []);
+  }, [shouldPrevent]);
 
-  const isVisible = gesturePoints.length > 1;
-  return <Canvas points={gesturePoints} isVisible={isVisible} />;
+  const isVisible = points.length > 1;
+  return <Canvas points={points} isVisible={isVisible} />;
 };

@@ -8,13 +8,12 @@ import {
   string,
 } from "valibot";
 import { GestureActionSchema } from "./action";
-import { type Direction, DirectionSchema, directionEquals } from "./direction";
+import { DirectionSchema } from "./direction";
 
 const GestureSchema = object({
   inputs: array(DirectionSchema),
   action: GestureActionSchema,
 });
-type Gesture = InferOutput<typeof GestureSchema>;
 
 const SettingSchema = object({
   gestures: array(GestureSchema),
@@ -92,15 +91,6 @@ const settingItem = storage.defineItem<Setting>("local:gestureSetting", {
 
 export async function getSetting(): Promise<Setting> {
   return await settingItem.getValue();
-}
-
-export function findGesture(
-  setting: Setting,
-  directions: Direction[],
-): Gesture | undefined {
-  return setting.gestures.find((gesture) => {
-    return directionEquals(gesture.inputs, directions);
-  });
 }
 
 export async function importSetting(

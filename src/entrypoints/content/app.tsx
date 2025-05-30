@@ -1,7 +1,7 @@
+import { type Point, fromPoints } from "@/src/feature/direction";
 import { buildGestureMessage } from "@/src/feature/message";
 import { useEffect, useState } from "react";
-import { type Point, fromPoints } from "../../feature/direction";
-import { Canvas } from "./Canvas";
+import { Canvas } from "./canvas";
 
 export const App = () => {
   const [points, setPoints] = useState<Point[]>([]);

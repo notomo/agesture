@@ -1,9 +1,10 @@
+import type { Point } from "@/src/feature/direction";
 import { useEffect, useRef } from "react";
 
 export const Canvas = ({
   points,
 }: {
-  points: { x: number; y: number }[];
+  points: Point[];
 }) => {
   const ref = useRef<HTMLCanvasElement>(null);
 

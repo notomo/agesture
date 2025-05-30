@@ -80,14 +80,17 @@ type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
 
 async function openLinkAction({
   content,
+  getCurrentTab,
   active,
 }: ActionContext & OpenLinkActionArgs) {
   if (!content.url) {
     return;
   }
 
+  const tab = await getCurrentTab();
   await browser.tabs.create({
     url: content.url,
+    index: tab.index + 1,
     active,
   });
 }

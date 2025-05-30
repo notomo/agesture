@@ -15,6 +15,7 @@ async function getCurrentTab() {
   }
   return {
     id: currentTab.id,
+    index: currentTab.index,
     url: currentTab.url ?? "",
     title: currentTab.title ?? "Untitle",
   };

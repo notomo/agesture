@@ -7,29 +7,18 @@ import { cn } from "@/src/lib/tailwind";
 import { useEffect, useState } from "react";
 
 export function App() {
-  const [settingJson, setSettingJson] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const [isError, setIsError] = useState(false);
-
-  useEffect(() => {
-    async function loadSetting() {
-      const setting = await getSetting();
-      setSettingJson(JSON.stringify(setting, null, 2));
-    }
-
-    loadSetting();
-  }, []);
+  const [settingJson, setSettingJson] = useSetting();
+  const [saveResult, setSaveResult] = useState({
+    isError: false,
+    message: "",
+  });
 
   const handleSave = async () => {
     const result = await importSetting(settingJson);
-
-    if (result.success) {
-      setIsError(false);
-      setStatusMessage("Setting saved successfully");
-    } else {
-      setIsError(true);
-      setStatusMessage(`Error: ${result.error}`);
-    }
+    setSaveResult({
+      isError: !!result.error,
+      message: result.error ?? "Setting saved successfully",
+    });
   };
 
   return (
@@ -49,14 +38,16 @@ export function App() {
         />
       </div>
 
-      {statusMessage && (
+      {saveResult.message && (
         <div
           className={cn(
-            "p-2 mb-4 rounded",
-            isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700",
+            "p-2 mb-4 rounded whitespace-pre-wrap",
+            saveResult.isError
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700",
           )}
         >
-          {statusMessage}
+          {saveResult.message}
         </div>
       )}
 
@@ -79,3 +70,17 @@ export function App() {
     </div>
   );
 }
+
+const useSetting = () => {
+  const [settingJson, setSettingJson] = useState("");
+
+  useEffect(() => {
+    async function loadSetting() {
+      const setting = await getSetting();
+      setSettingJson(JSON.stringify(setting, null, 2));
+    }
+    loadSetting();
+  }, []);
+
+  return [settingJson, setSettingJson] as const;
+};

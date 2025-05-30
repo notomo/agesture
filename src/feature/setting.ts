@@ -93,24 +93,22 @@ export async function getSetting(): Promise<Setting> {
   return await settingItem.getValue();
 }
 
-export async function importSetting(
-  jsonString: string,
-): Promise<{ success: boolean; data?: Setting; error?: string }> {
+export async function importSetting(jsonString: string) {
   const parsed = safeParse(
     pipe(string(), parseJson(), SettingSchema),
     jsonString,
   );
   if (!parsed.success) {
+    const detail = parsed.issues
+      .flatMap((x) => x.issues ?? [])
+      .map((x) => x.message)
+      .join("\n");
     return {
-      success: false,
-      error: `Invalid setting format: ${parsed.issues[0]?.message}`,
+      error: `Invalid setting format: ${detail}`,
     };
   }
 
   await settingItem.setValue(parsed.output);
 
-  return {
-    success: true,
-    data: parsed.output,
-  };
+  return {};
 }

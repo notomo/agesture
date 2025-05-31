@@ -100,7 +100,7 @@ export async function importSetting(jsonString: string) {
   );
   if (!parsed.success) {
     const detail = parsed.issues
-      .flatMap((x) => x.issues ?? [])
+      .flatMap((x) => [x, ...(x.issues ?? [])])
       .map((x) => x.message)
       .join("\n");
     return {

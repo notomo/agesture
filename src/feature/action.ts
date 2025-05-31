@@ -70,6 +70,19 @@ async function searchAction({ content }: ActionContext) {
   });
 }
 
+async function closeOtherTabsAction({ getCurrentTab }: ActionContext) {
+  const currentTab = await getCurrentTab();
+  const allTabs = await browser.tabs.query({
+    currentWindow: true,
+  });
+
+  const tabsToClose = allTabs
+    .filter((tab) => tab.id !== currentTab.id)
+    .map((tab) => tab.id)
+    .filter((id): id is number => id !== undefined);
+  await browser.tabs.remove(tabsToClose);
+}
+
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
   args: object({
@@ -103,6 +116,7 @@ const NoArgsActionNameSchema = union([
   literal("scrollTop"),
   literal("scrollBottom"),
   literal("search"),
+  literal("closeOtherTabs"),
 ]);
 
 export const GestureActionSchema = union([
@@ -123,6 +137,7 @@ const actions = {
   scrollTop: scrollTopAction,
   scrollBottom: scrollBottomAction,
   search: searchAction,
+  closeOtherTabs: closeOtherTabsAction,
   openLink: openLinkAction,
 } as const satisfies Record<ActionName, unknown>;
 

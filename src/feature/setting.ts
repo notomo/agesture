@@ -82,6 +82,12 @@ export const DEFAULT_SETTING: Setting = {
         name: "bookmark",
       },
     },
+    {
+      inputs: ["DOWN", "LEFT", "DOWN", "LEFT"],
+      action: {
+        name: "closeOtherTabs",
+      },
+    },
   ],
 };
 

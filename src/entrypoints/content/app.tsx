@@ -12,6 +12,7 @@ export const App = () => {
         return;
       }
       setPoints([...points, { x: e.clientX, y: e.clientY }]);
+      e.preventDefault(); // to prevent unselecting text
     };
 
     const handleMouseMove = (e: MouseEvent) => {

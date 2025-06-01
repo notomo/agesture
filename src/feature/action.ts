@@ -58,28 +58,32 @@ async function scrollBottomAction({ getCurrentTab }: ActionContext) {
   });
 }
 
-async function searchAction({ content }: ActionContext) {
+async function searchAction({ content, getCurrentTab }: ActionContext) {
   const selectedText = content.selectedText.trim();
   if (!selectedText) {
     return;
   }
 
+  const tab = await getCurrentTab();
+  const newTab = await browser.tabs.create({
+    index: tab.index + 1,
+  });
   await browser.search.query({
     text: selectedText,
-    disposition: "NEW_TAB",
+    tabId: newTab.id,
   });
 }
 
 async function closeOtherTabsAction({ getCurrentTab }: ActionContext) {
-  const currentTab = await getCurrentTab();
+  const tab = await getCurrentTab();
   const allTabs = await browser.tabs.query({
     currentWindow: true,
   });
 
   const tabsToClose = allTabs
-    .filter((tab) => tab.id !== currentTab.id)
-    .map((tab) => tab.id)
-    .filter((id): id is number => id !== undefined);
+    .filter((x) => x.id !== tab.id)
+    .map((x) => x.id)
+    .filter((tabId): tabId is number => tabId !== undefined);
   await browser.tabs.remove(tabsToClose);
 }
 

@@ -44,7 +44,7 @@ export const App = () => {
       }
 
       await browser.runtime.sendMessage(
-        buildGestureMessage(directions, startPoint),
+        buildGestureMessage({ directions, startPoint }),
       );
     };
 

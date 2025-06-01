@@ -6,6 +6,7 @@
  */
 
 import { type InferOutput, object, optional, string } from "valibot";
+import type { Point } from "./direction";
 
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -37,13 +38,14 @@ export const ContentActionContextSchema = object({
 
 type ContentActionContext = InferOutput<typeof ContentActionContextSchema>;
 
-export function buildContentActionContext(point: {
-  x: number;
-  y: number;
+export function buildContentActionContext({
+  startPoint,
+}: {
+  startPoint: Point;
 }): ContentActionContext {
   return {
     selectedText: getSelectedText(),
-    url: findLinkUrl(point),
+    url: findLinkUrl(startPoint),
   };
 }
 

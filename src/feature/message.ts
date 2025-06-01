@@ -10,7 +10,12 @@ import {
   ContentActionContextSchema,
   buildContentActionContext,
 } from "./action-context";
-import { type Direction, DirectionSchema, directionEquals } from "./direction";
+import {
+  type Direction,
+  DirectionSchema,
+  type Point,
+  directionEquals,
+} from "./direction";
 import { getSetting } from "./setting";
 
 const GestureMessageSchema = object({
@@ -46,13 +51,16 @@ export async function handleMessage(rawMessage: unknown) {
   return {};
 }
 
-export function buildGestureMessage(
-  directions: Direction[],
-  startPoint: { x: number; y: number },
-): GestureMessage {
+export function buildGestureMessage({
+  directions,
+  startPoint,
+}: {
+  directions: Direction[];
+  startPoint: Point;
+}): GestureMessage {
   return {
     type: "gesture",
     directions,
-    context: buildContentActionContext(startPoint),
+    context: buildContentActionContext({ startPoint }),
   };
 }

@@ -41,6 +41,12 @@ export const DEFAULT_SETTING: Setting = {
       },
     },
     {
+      inputs: ["RIGHT", "UP"],
+      action: {
+        name: "maximizeWindow",
+      },
+    },
+    {
       inputs: ["DOWN", "RIGHT"],
       action: {
         name: "search",

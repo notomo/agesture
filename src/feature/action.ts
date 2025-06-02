@@ -87,6 +87,13 @@ async function closeOtherTabsAction({ getCurrentTab }: ActionContext) {
   await browser.tabs.remove(tabsToClose);
 }
 
+async function maximizeWindowAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.windows.update(tab.windowId, {
+    state: "maximized",
+  });
+}
+
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
   args: object({
@@ -121,6 +128,7 @@ const NoArgsActionNameSchema = union([
   literal("scrollBottom"),
   literal("search"),
   literal("closeOtherTabs"),
+  literal("maximizeWindow"),
 ]);
 
 export const GestureActionSchema = union([
@@ -142,6 +150,7 @@ const actions = {
   scrollBottom: scrollBottomAction,
   search: searchAction,
   closeOtherTabs: closeOtherTabsAction,
+  maximizeWindow: maximizeWindowAction,
   openLink: openLinkAction,
 } as const satisfies Record<ActionName, unknown>;
 

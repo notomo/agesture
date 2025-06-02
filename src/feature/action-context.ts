@@ -19,6 +19,7 @@ async function getCurrentTab() {
     index: currentTab.index,
     url: currentTab.url ?? "",
     title: currentTab.title ?? "Untitle",
+    windowId: currentTab.windowId,
   };
 }
 

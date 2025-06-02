@@ -6,13 +6,19 @@ import {
   pipe,
   safeParse,
   string,
+  union,
 } from "valibot";
 import { GestureActionSchema } from "./action";
 import { DirectionSchema } from "./direction";
 
+const GestureActionOrArraySchema = union([
+  GestureActionSchema,
+  array(GestureActionSchema),
+]);
+
 const GestureSchema = object({
   inputs: array(DirectionSchema),
-  action: GestureActionSchema,
+  action: GestureActionOrArraySchema,
 });
 
 const SettingSchema = object({
@@ -42,9 +48,14 @@ export const DEFAULT_SETTING: Setting = {
     },
     {
       inputs: ["RIGHT", "UP"],
-      action: {
-        name: "maximizeWindow",
-      },
+      action: [
+        {
+          name: "moveTabToNewWindow",
+        },
+        {
+          name: "maximizeWindow",
+        },
+      ],
     },
     {
       inputs: ["DOWN", "RIGHT"],

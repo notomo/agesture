@@ -43,10 +43,16 @@ export async function handleMessage(rawMessage: unknown) {
     };
   }
 
-  await callAction({
-    gestureAction: gesture.action,
-    contentContext: message.context,
-  });
+  const actions = Array.isArray(gesture.action)
+    ? gesture.action
+    : [gesture.action];
+
+  for (const action of actions) {
+    await callAction({
+      gestureAction: action,
+      contentContext: message.context,
+    });
+  }
 
   return {};
 }

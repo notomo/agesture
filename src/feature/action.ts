@@ -94,6 +94,13 @@ async function maximizeWindowAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.windows.create({
+    tabId: tab.id,
+  });
+}
+
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
   args: object({
@@ -129,6 +136,7 @@ const NoArgsActionNameSchema = union([
   literal("search"),
   literal("closeOtherTabs"),
   literal("maximizeWindow"),
+  literal("moveTabToNewWindow"),
 ]);
 
 export const GestureActionSchema = union([
@@ -151,6 +159,7 @@ const actions = {
   search: searchAction,
   closeOtherTabs: closeOtherTabsAction,
   maximizeWindow: maximizeWindowAction,
+  moveTabToNewWindow: moveTabToNewWindowAction,
   openLink: openLinkAction,
 } as const satisfies Record<ActionName, unknown>;
 

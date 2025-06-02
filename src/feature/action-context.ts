@@ -29,7 +29,18 @@ function getSelectedText(): string {
 
 function findLinkUrl(point: { x: number; y: number }): string | undefined {
   const element = document.elementFromPoint(point.x, point.y);
-  return element?.closest("a")?.href;
+
+  const closest = element?.closest("a")?.href;
+  if (closest) {
+    return closest;
+  }
+
+  const child = element?.querySelector("a")?.href;
+  if (child) {
+    return child;
+  }
+
+  return element?.shadowRoot?.querySelector("a")?.href;
 }
 
 export const ContentActionContextSchema = object({

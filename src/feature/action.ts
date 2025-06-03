@@ -23,6 +23,22 @@ async function bookmarkAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function removeBookmarkAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  if (!tab.url) {
+    return;
+  }
+
+  const bookmarkIds = (
+    await browser.bookmarks.search({
+      url: tab.url,
+    })
+  ).map((x) => x.id);
+  for (const id of bookmarkIds) {
+    await browser.bookmarks.remove(id);
+  }
+}
+
 async function goForwardAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   await browser.tabs.goForward(tab.id);
@@ -128,6 +144,7 @@ async function openLinkAction({
 
 const NoArgsActionNameSchema = union([
   literal("bookmark"),
+  literal("removeBookmark"),
   literal("goForward"),
   literal("goBackward"),
   literal("reload"),
@@ -151,6 +168,7 @@ type ActionName = GestureAction["name"];
 
 const actions = {
   bookmark: bookmarkAction,
+  removeBookmark: removeBookmarkAction,
   goForward: goForwardAction,
   goBackward: goBackwardAction,
   reload: reloadAction,

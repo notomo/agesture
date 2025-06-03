@@ -100,6 +100,12 @@ export const DEFAULT_SETTING: Setting = {
       },
     },
     {
+      inputs: ["LEFT", "DOWN"],
+      action: {
+        name: "removeBookmark",
+      },
+    },
+    {
       inputs: ["DOWN", "LEFT", "DOWN", "LEFT"],
       action: {
         name: "closeOtherTabs",

@@ -47,7 +47,7 @@ export const DEFAULT_SETTING: Setting = {
       },
     },
     {
-      inputs: ["RIGHT", "UP"],
+      inputs: ["DOWN", "RIGHT", "UP"],
       action: [
         {
           name: "moveTabToNewWindow",

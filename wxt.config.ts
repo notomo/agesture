@@ -17,6 +17,9 @@ export default defineConfig({
       page: "src/entrypoints/options/index.html",
       open_in_tab: true,
     },
+    chrome_url_overrides: {
+      newtab: "src/entrypoints/newtab/index.html",
+    },
   },
   dev: {
     server: {

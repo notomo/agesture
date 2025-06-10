@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # Browser extension specific
 web-ext-artifacts/
+
+# Claude
+.claude/settings.local.json

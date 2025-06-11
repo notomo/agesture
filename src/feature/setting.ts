@@ -76,6 +76,21 @@ export const DEFAULT_SETTING: Setting = {
       },
     },
     {
+      inputs: ["LEFT", "RIGHT"],
+      action: {
+        name: "piemenu",
+        args: {
+          menu: [
+            "maximizeWindow",
+            "maximizeWindow",
+            "maximizeWindow",
+            "maximizeWindow",
+            "maximizeWindow",
+          ],
+        },
+      },
+    },
+    {
       inputs: ["RIGHT", "LEFT"],
       action: {
         name: "reload",

@@ -7,10 +7,12 @@
 
 import {
   type InferOutput,
+  array,
   boolean,
   literal,
   object,
   optional,
+  string,
   union,
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
@@ -125,6 +127,14 @@ const OpenLinkActionSchema = object({
 });
 type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
 
+const PiemenuActionSchema = object({
+  name: literal("piemenu"),
+  args: object({
+    menu: array(string()),
+  }),
+});
+type PiemenuActionArgs = InferOutput<typeof PiemenuActionSchema>["args"];
+
 async function openLinkAction({
   content,
   getCurrentTab,
@@ -140,6 +150,12 @@ async function openLinkAction({
     index: tab.index + 1,
     active,
   });
+}
+
+async function piemenuAction({ menu }: ActionContext & PiemenuActionArgs) {
+  return {
+    piemenu: menu,
+  };
 }
 
 const NoArgsActionNameSchema = union([
@@ -158,6 +174,7 @@ const NoArgsActionNameSchema = union([
 
 export const GestureActionSchema = union([
   OpenLinkActionSchema,
+  PiemenuActionSchema,
   object({
     name: NoArgsActionNameSchema,
   }),
@@ -179,6 +196,7 @@ const actions = {
   maximizeWindow: maximizeWindowAction,
   moveTabToNewWindow: moveTabToNewWindowAction,
   openLink: openLinkAction,
+  piemenu: piemenuAction,
 } as const satisfies Record<ActionName, unknown>;
 
 export async function callAction({
@@ -194,6 +212,11 @@ export async function callAction({
     const action = actions[gestureAction.name];
     await action({ ...context, ...gestureAction.args });
     return;
+  }
+
+  if (gestureAction.name === "piemenu") {
+    const action = actions[gestureAction.name];
+    return await action({ ...context, ...gestureAction.args });
   }
 
   const action = actions[gestureAction.name];

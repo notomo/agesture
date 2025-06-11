@@ -1,10 +1,16 @@
 import { type Point, fromPoints } from "@/src/feature/direction";
 import { buildGestureMessage } from "@/src/feature/message";
+import { getSetting } from "@/src/feature/setting";
 import { useEffect, useState } from "react";
 import { Canvas } from "./canvas";
+import { Piemenu } from "./piemenu";
 
 export const App = () => {
   const [points, setPoints] = useState<Point[]>([]);
+  const [piemenuData, setPiemenuData] = useState<{
+    menu: string[];
+    center: Point;
+  } | null>(null);
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -43,9 +49,16 @@ export const App = () => {
         throw new Error("startPoint should exist when gesture is triggered");
       }
 
-      await browser.runtime.sendMessage(
+      const response = await browser.runtime.sendMessage(
         buildGestureMessage({ directions, startPoint }),
       );
+
+      if (response?.piemenu) {
+        setPiemenuData({
+          menu: response.piemenu,
+          center: startPoint,
+        });
+      }
     };
 
     document.addEventListener("mousedown", handleMouseDown);
@@ -73,5 +86,48 @@ export const App = () => {
     };
   }, [hasPoint]);
 
-  return <Canvas points={points} />;
+  const handleSelectAction = async (actionName: string) => {
+    const setting = await getSetting();
+
+    const gesture = setting.gestures.find((g) => {
+      const actions = Array.isArray(g.action) ? g.action : [g.action];
+      return actions.some((a) => a.name === actionName);
+    });
+
+    if (gesture && piemenuData) {
+      const actions = Array.isArray(gesture.action)
+        ? gesture.action
+        : [gesture.action];
+      const action = actions.find((a) => a.name === actionName);
+
+      if (action) {
+        const message = buildGestureMessage({
+          directions: [],
+          startPoint: piemenuData.center,
+        });
+
+        const actionMessage = {
+          type: "piemenuAction",
+          action: action,
+          context: message.context,
+        };
+
+        await browser.runtime.sendMessage(actionMessage);
+      }
+    }
+  };
+
+  return (
+    <>
+      <Canvas points={points} />
+      {piemenuData && (
+        <Piemenu
+          menu={piemenuData.menu}
+          center={piemenuData.center}
+          onClose={() => setPiemenuData(null)}
+          onSelectAction={handleSelectAction}
+        />
+      )}
+    </>
+  );
 };

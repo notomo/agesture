@@ -48,10 +48,13 @@ export async function handleMessage(rawMessage: unknown) {
     : [gesture.action];
 
   for (const action of actions) {
-    await callAction({
+    const result = await callAction({
       gestureAction: action,
       contentContext: message.context,
     });
+    if (result) {
+      return result;
+    }
   }
 
   return {};

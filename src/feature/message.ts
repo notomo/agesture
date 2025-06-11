@@ -11,6 +11,7 @@ import {
   object,
   parse,
   string,
+  union,
 } from "valibot";
 import { callAction } from "./action";
 import {
@@ -39,7 +40,11 @@ const PiemenuActionMessageSchema = object({
   context: ContentActionContextSchema,
 });
 
-export function parseMessage(rawMessage: unknown) {
+type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
+
+const MessageSchema = union([GestureMessageSchema, PiemenuActionMessageSchema]);
+
+export function parseGestureMessage(rawMessage: unknown) {
   return parse(GestureMessageSchema, rawMessage);
 }
 
@@ -47,8 +52,7 @@ export function parsePiemenuActionMessage(rawMessage: unknown) {
   return parse(PiemenuActionMessageSchema, rawMessage);
 }
 
-export async function handleMessage(rawMessage: unknown) {
-  const message = parseMessage(rawMessage);
+async function handleGestureMessage(message: GestureMessage) {
   const setting = await getSetting();
 
   const gesture = setting.gestures.find((x) => {
@@ -77,8 +81,7 @@ export async function handleMessage(rawMessage: unknown) {
   return {};
 }
 
-export async function handlePiemenuActionMessage(rawMessage: unknown) {
-  const message = parsePiemenuActionMessage(rawMessage);
+async function handlePiemenuActionMessage(message: PiemenuActionMessage) {
   const setting = await getSetting();
 
   const gesture = setting.gestures.find((g) => {
@@ -98,6 +101,18 @@ export async function handlePiemenuActionMessage(rawMessage: unknown) {
         contentContext: message.context,
       });
     }
+  }
+}
+
+export async function handleMessage(rawMessage: unknown) {
+  const message = parse(MessageSchema, rawMessage);
+
+  if (message.type === "gesture") {
+    return handleGestureMessage(message);
+  }
+
+  if (message.type === "piemenuAction") {
+    return handlePiemenuActionMessage(message);
   }
 }
 

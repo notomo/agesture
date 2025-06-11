@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parseMessage, parsePiemenuActionMessage } from "./message";
+import { parseGestureMessage, parsePiemenuActionMessage } from "./message";
 
-describe("parseMessage", () => {
+describe("parseGestureMessage", () => {
   it("should parse valid gesture message", () => {
     const validMessage = {
       type: "gesture",
@@ -11,7 +11,7 @@ describe("parseMessage", () => {
       },
     };
 
-    const result = parseMessage(validMessage);
+    const result = parseGestureMessage(validMessage);
 
     expect(result).toEqual(validMessage);
   });

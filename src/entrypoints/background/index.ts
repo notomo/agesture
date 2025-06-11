@@ -1,15 +1,14 @@
-import { callAction } from "@/src/feature/action";
-import { handleMessage } from "@/src/feature/message";
+import {
+  handleMessage,
+  handlePiemenuActionMessage,
+} from "@/src/feature/message";
 
 export default defineBackground({
   main() {
     browser.runtime.onMessage.addListener(
       (rawMessage, _sender, sendResponse) => {
         if (rawMessage.type === "piemenuAction") {
-          callAction({
-            gestureAction: rawMessage.action,
-            contentContext: rawMessage.context,
-          }).then(() => {
+          handlePiemenuActionMessage(rawMessage).then(() => {
             sendResponse({ success: true });
           });
           return true;

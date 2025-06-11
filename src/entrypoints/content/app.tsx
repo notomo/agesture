@@ -1,6 +1,5 @@
 import { type Point, fromPoints } from "@/src/feature/direction";
 import { buildGestureMessage } from "@/src/feature/message";
-import { getSetting } from "@/src/feature/setting";
 import { useEffect, useState } from "react";
 import { Canvas } from "./canvas";
 import { Piemenu } from "./piemenu";
@@ -87,33 +86,19 @@ export const App = () => {
   }, [hasPoint]);
 
   const handleSelectAction = async (actionName: string) => {
-    const setting = await getSetting();
+    if (piemenuData) {
+      const message = buildGestureMessage({
+        directions: [],
+        startPoint: piemenuData.center,
+      });
 
-    const gesture = setting.gestures.find((g) => {
-      const actions = Array.isArray(g.action) ? g.action : [g.action];
-      return actions.some((a) => a.name === actionName);
-    });
+      const piemenuActionMessage = {
+        type: "piemenuAction",
+        actionName: actionName,
+        context: message.context,
+      };
 
-    if (gesture && piemenuData) {
-      const actions = Array.isArray(gesture.action)
-        ? gesture.action
-        : [gesture.action];
-      const action = actions.find((a) => a.name === actionName);
-
-      if (action) {
-        const message = buildGestureMessage({
-          directions: [],
-          startPoint: piemenuData.center,
-        });
-
-        const actionMessage = {
-          type: "piemenuAction",
-          action: action,
-          context: message.context,
-        };
-
-        await browser.runtime.sendMessage(actionMessage);
-      }
+      await browser.runtime.sendMessage(piemenuActionMessage);
     }
   };
 

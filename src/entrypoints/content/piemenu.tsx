@@ -1,4 +1,5 @@
 import type { Point } from "@/src/feature/direction";
+import { cn } from "@/src/lib/tailwind";
 import { useCallback, useEffect, useState } from "react";
 
 interface PiemenuProps {
@@ -86,98 +87,55 @@ export const Piemenu = ({
   }, [menu, highlightedIndex, onClose, onSelectAction, getHighlightedIndex]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 pointer-events-none"
-      style={{ left: 0, top: 0, width: "100vw", height: "100vh" }}
-    >
+    <div className="fixed inset-0 z-50 pointer-events-none">
       <div className="pointer-events-auto w-full h-full">
-        <svg
-          className="absolute inset-0 w-full h-full"
-          style={{ pointerEvents: "none" }}
-          role="img"
-          aria-label="Pie menu"
-        >
-          <defs>
-            <filter
-              id="highlight-glow"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-            >
-              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter
-              id="subtle-shadow"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-            >
-              <feDropShadow
-                dx="0"
-                dy="2"
-                stdDeviation="2"
-                floodColor="rgba(0,0,0,0.3)"
-              />
-            </filter>
-          </defs>
-          {menu.map((item, index) => {
-            const pos = getMenuItemPosition(index);
-            const isHighlighted = index === highlightedIndex;
+        {menu.map((item, index) => {
+          const pos = getMenuItemPosition(index);
+          const isHighlighted = index === highlightedIndex;
 
-            return (
-              <g key={item.action}>
-                <circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={itemRadius}
-                  fill={
-                    isHighlighted
-                      ? "rgba(59, 130, 246, 0.9)"
-                      : "rgba(30, 30, 30, 0.9)"
-                  }
-                  stroke={isHighlighted ? "#60a5fa" : "#6b7280"}
-                  strokeWidth={isHighlighted ? "3" : "2"}
-                  filter={
-                    isHighlighted
-                      ? "url(#highlight-glow)"
-                      : "url(#subtle-shadow)"
-                  }
-                />
-                <text
-                  x={pos.x}
-                  y={pos.y + 5}
-                  textAnchor="middle"
-                  fill={isHighlighted ? "#ffffff" : "#e5e7eb"}
-                  fontSize={isHighlighted ? "18" : "16"}
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                  fontWeight={isHighlighted ? "600" : "500"}
-                  style={{
-                    textShadow: isHighlighted
-                      ? "0 1px 2px rgba(0, 0, 0, 0.5)"
-                      : "0 1px 1px rgba(0, 0, 0, 0.8)",
-                  }}
-                >
-                  {item.action}
-                </text>
-              </g>
-            );
-          })}
-          <circle
-            cx={center.x}
-            cy={center.y}
-            r="15"
-            fill="rgba(75, 85, 99, 0.9)"
-            stroke="#9ca3af"
-            strokeWidth="2"
-            filter="url(#subtle-shadow)"
-          />
-        </svg>
+          return (
+            <div
+              key={item.action}
+              className={cn(
+                "absolute rounded-full flex items-center justify-center transition-all duration-200",
+                isHighlighted
+                  ? "bg-blue-500/90 border-blue-400 border-3 shadow-lg shadow-blue-500/30 scale-110"
+                  : "bg-gray-900/90 border-gray-500 border-2 shadow-md shadow-black/30",
+              )}
+              style={{
+                left: pos.x - itemRadius,
+                top: pos.y - itemRadius,
+                width: itemRadius * 2,
+                height: itemRadius * 2,
+              }}
+            >
+              <span
+                className={cn(
+                  "font-sans select-none transition-all duration-200",
+                  isHighlighted
+                    ? "text-white text-lg font-semibold drop-shadow-sm"
+                    : "text-gray-200 text-base font-medium drop-shadow-sm",
+                )}
+                style={{
+                  textShadow: isHighlighted
+                    ? "0 1px 2px rgba(0, 0, 0, 0.5)"
+                    : "0 1px 1px rgba(0, 0, 0, 0.8)",
+                }}
+              >
+                {item.action}
+              </span>
+            </div>
+          );
+        })}
+        <div
+          className="absolute rounded-full bg-gray-600/90 border-gray-400 border-2 shadow-md shadow-black/40"
+          style={{
+            left: center.x - 15,
+            top: center.y - 15,
+            width: 30,
+            height: 30,
+          }}
+        />
       </div>
     </div>
   );

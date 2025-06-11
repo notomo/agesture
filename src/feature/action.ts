@@ -130,7 +130,11 @@ type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
 const PiemenuActionSchema = object({
   name: literal("piemenu"),
   args: object({
-    menu: array(string()),
+    menus: array(
+      object({
+        action: string(),
+      }),
+    ),
   }),
 });
 type PiemenuActionArgs = InferOutput<typeof PiemenuActionSchema>["args"];
@@ -152,9 +156,9 @@ async function openLinkAction({
   });
 }
 
-async function piemenuAction({ menu }: ActionContext & PiemenuActionArgs) {
+async function piemenuAction({ menus }: ActionContext & PiemenuActionArgs) {
   return {
-    piemenu: menu,
+    piemenu: menus,
   };
 }
 

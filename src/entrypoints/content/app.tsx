@@ -8,7 +8,7 @@ import { Piemenu } from "./piemenu";
 export const App = () => {
   const [points, setPoints] = useState<Point[]>([]);
   const [piemenuData, setPiemenuData] = useState<{
-    menu: string[];
+    menu: { action: string }[];
     center: Point;
   } | null>(null);
 

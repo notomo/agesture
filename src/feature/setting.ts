@@ -80,12 +80,12 @@ export const DEFAULT_SETTING: Setting = {
       action: {
         name: "piemenu",
         args: {
-          menu: [
-            "maximizeWindow",
-            "maximizeWindow",
-            "maximizeWindow",
-            "maximizeWindow",
-            "maximizeWindow",
+          menus: [
+            { action: "maximizeWindow" },
+            { action: "reload" },
+            { action: "bookmark" },
+            { action: "goBack" },
+            { action: "goForward" },
           ],
         },
       },

@@ -2,7 +2,7 @@ import type { Point } from "@/src/feature/direction";
 import { useCallback, useEffect, useState } from "react";
 
 interface PiemenuProps {
-  menu: string[];
+  menu: { action: string }[];
   center: Point;
   onClose: () => void;
   onSelectAction: (actionName: string) => void;
@@ -58,9 +58,9 @@ export const Piemenu = ({
     const handleClick = (e: MouseEvent) => {
       e.preventDefault();
       if (e.button === 0 && highlightedIndex >= 0) {
-        const actionName = menu[highlightedIndex];
-        if (actionName) {
-          onSelectAction(actionName);
+        const menuItem = menu[highlightedIndex];
+        if (menuItem) {
+          onSelectAction(menuItem.action);
         }
         onClose();
       } else if (e.button === 2) {
@@ -102,7 +102,7 @@ export const Piemenu = ({
             const isHighlighted = index === highlightedIndex;
 
             return (
-              <g key={item}>
+              <g key={item.action}>
                 <circle
                   cx={pos.x}
                   cy={pos.y}
@@ -124,7 +124,7 @@ export const Piemenu = ({
                   fontFamily="system-ui"
                   fontWeight={isHighlighted ? "bold" : "normal"}
                 >
-                  {item}
+                  {item.action}
                 </text>
               </g>
             );

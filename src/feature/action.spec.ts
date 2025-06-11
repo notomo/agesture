@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import { GestureActionSchema } from "./action";
 
 describe("GestureActionSchema", () => {
-  it("should parse piemenu action with menu array", () => {
+  it("should parse piemenu action with menus array", () => {
     const piemenuAction = {
       name: "piemenu",
       args: {
-        menu: ["bookmark", "reload", "goBack"],
+        menus: [
+          { action: "bookmark" },
+          { action: "reload" },
+          { action: "goBack" },
+        ],
       },
     };
 

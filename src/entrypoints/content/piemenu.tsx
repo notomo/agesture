@@ -17,8 +17,8 @@ export const Piemenu = ({
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const [mousePosition, setMousePosition] = useState<Point>({ x: 0, y: 0 });
 
-  const radius = 80;
-  const itemRadius = 30;
+  const radius = 140;
+  const itemRadius = 50;
 
   const getMenuItemPosition = (index: number) => {
     const angle = (index * 2 * Math.PI) / menu.length - Math.PI / 2;
@@ -36,7 +36,7 @@ export const Piemenu = ({
       const dy = mousePos.y - center.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance < 20) return -1;
+      if (distance < 35) return -1;
 
       const angle = Math.atan2(dy, dx) + Math.PI / 2;
       const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
@@ -97,6 +97,35 @@ export const Piemenu = ({
           role="img"
           aria-label="Pie menu"
         >
+          <defs>
+            <filter
+              id="highlight-glow"
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
+            >
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter
+              id="subtle-shadow"
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="2"
+                stdDeviation="2"
+                floodColor="rgba(0,0,0,0.3)"
+              />
+            </filter>
+          </defs>
           {menu.map((item, index) => {
             const pos = getMenuItemPosition(index);
             const isHighlighted = index === highlightedIndex;
@@ -109,20 +138,30 @@ export const Piemenu = ({
                   r={itemRadius}
                   fill={
                     isHighlighted
-                      ? "rgba(59, 130, 246, 0.8)"
-                      : "rgba(0, 0, 0, 0.7)"
+                      ? "rgba(59, 130, 246, 0.9)"
+                      : "rgba(30, 30, 30, 0.9)"
                   }
-                  stroke={isHighlighted ? "#3b82f6" : "#374151"}
-                  strokeWidth="2"
+                  stroke={isHighlighted ? "#60a5fa" : "#6b7280"}
+                  strokeWidth={isHighlighted ? "3" : "2"}
+                  filter={
+                    isHighlighted
+                      ? "url(#highlight-glow)"
+                      : "url(#subtle-shadow)"
+                  }
                 />
                 <text
                   x={pos.x}
                   y={pos.y + 5}
                   textAnchor="middle"
-                  fill="white"
-                  fontSize="12"
-                  fontFamily="system-ui"
-                  fontWeight={isHighlighted ? "bold" : "normal"}
+                  fill={isHighlighted ? "#ffffff" : "#e5e7eb"}
+                  fontSize={isHighlighted ? "18" : "16"}
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                  fontWeight={isHighlighted ? "600" : "500"}
+                  style={{
+                    textShadow: isHighlighted
+                      ? "0 1px 2px rgba(0, 0, 0, 0.5)"
+                      : "0 1px 1px rgba(0, 0, 0, 0.8)",
+                  }}
                 >
                   {item.action}
                 </text>
@@ -132,10 +171,11 @@ export const Piemenu = ({
           <circle
             cx={center.x}
             cy={center.y}
-            r="8"
-            fill="rgba(156, 163, 175, 0.8)"
-            stroke="#6b7280"
-            strokeWidth="1"
+            r="15"
+            fill="rgba(75, 85, 99, 0.9)"
+            stroke="#9ca3af"
+            strokeWidth="2"
+            filter="url(#subtle-shadow)"
           />
         </svg>
       </div>

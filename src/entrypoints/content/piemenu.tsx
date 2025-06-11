@@ -16,7 +16,6 @@ export const Piemenu = ({
   onSelectAction,
 }: PiemenuProps) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-  const [mousePosition, setMousePosition] = useState<Point>({ x: 0, y: 0 });
 
   const radius = 140;
   const itemRadius = 50;
@@ -52,7 +51,6 @@ export const Piemenu = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const pos = { x: e.clientX, y: e.clientY };
-      setMousePosition(pos);
       setHighlightedIndex(getHighlightedIndex(pos));
     };
 

@@ -39,8 +39,6 @@ const PiemenuActionMessageSchema = object({
   context: ContentActionContextSchema,
 });
 
-type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
-
 export function parseMessage(rawMessage: unknown) {
   return parse(GestureMessageSchema, rawMessage);
 }

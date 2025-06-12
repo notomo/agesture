@@ -92,7 +92,7 @@ export const Piemenu = ({
 
           return (
             <div
-              key={item.action.name}
+              key={item.label}
               className={cn(
                 "absolute rounded-full flex items-center justify-center transition-all duration-200",
                 isHighlighted
@@ -119,7 +119,7 @@ export const Piemenu = ({
                     : "0 1px 1px rgba(0, 0, 0, 0.8)",
                 }}
               >
-                {item.action.name}
+                {item.label}
               </span>
             </div>
           );

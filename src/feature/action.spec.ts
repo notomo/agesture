@@ -8,9 +8,9 @@ describe("GestureActionSchema", () => {
       name: "piemenu",
       args: {
         menus: [
-          { action: { name: "bookmark" } },
-          { action: { name: "reload" } },
-          { action: { name: "goBackward" } },
+          { label: "Bookmark", action: { name: "bookmark" } },
+          { label: "Reload", action: { name: "reload" } },
+          { label: "Go Back", action: { name: "goBackward" } },
         ],
       },
     };

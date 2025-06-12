@@ -81,11 +81,21 @@ export const DEFAULT_SETTING: Setting = {
         name: "piemenu",
         args: {
           menus: [
-            { label: "Maximize", action: { name: "maximizeWindow" } },
-            { label: "Reload", action: { name: "reload" } },
-            { label: "Bookmark", action: { name: "bookmark" } },
-            { label: "Back", action: { name: "goBackward" } },
-            { label: "Forward", action: { name: "goForward" } },
+            {
+              label: "Extensions",
+              action: {
+                name: "openUrl",
+                args: { url: "chrome://extensions/" },
+              },
+            },
+            {
+              label: "History",
+              action: { name: "openUrl", args: { url: "chrome://history/" } },
+            },
+            {
+              label: "Bookmarks",
+              action: { name: "openUrl", args: { url: "chrome://bookmarks/" } },
+            },
           ],
         },
       },

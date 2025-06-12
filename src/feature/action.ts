@@ -12,6 +12,7 @@ import {
   literal,
   object,
   optional,
+  string,
   union,
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
@@ -134,6 +135,7 @@ const NoArgsActionNameSchema = union([
 const ActionNameSchema = union([
   NoArgsActionNameSchema,
   literal("openLink"),
+  literal("openUrl"),
   literal("piemenu"),
 ]);
 
@@ -145,8 +147,17 @@ const OpenLinkActionSchema = object({
 });
 type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
 
+const OpenUrlActionSchema = object({
+  name: literal("openUrl"),
+  args: object({
+    url: string(),
+  }),
+});
+type OpenUrlActionArgs = InferOutput<typeof OpenUrlActionSchema>["args"];
+
 const GestureActionWithoutPiemenuSchema = union([
   OpenLinkActionSchema,
+  OpenUrlActionSchema,
   object({
     name: NoArgsActionNameSchema,
   }),
@@ -180,6 +191,17 @@ async function openLinkAction({
   });
 }
 
+async function openUrlAction({
+  getCurrentTab,
+  url,
+}: ActionContext & OpenUrlActionArgs) {
+  const tab = await getCurrentTab();
+  await browser.tabs.create({
+    url,
+    index: tab.index + 1,
+  });
+}
+
 async function piemenuAction({ menus }: ActionContext & PiemenuActionArgs) {
   return {
     piemenu: menus,
@@ -208,6 +230,7 @@ const actions = {
   maximizeWindow: maximizeWindowAction,
   moveTabToNewWindow: moveTabToNewWindowAction,
   openLink: openLinkAction,
+  openUrl: openUrlAction,
   piemenu: piemenuAction,
 } as const satisfies Record<ActionName, unknown> satisfies Record<
   GestureAction["name"],
@@ -224,6 +247,12 @@ export async function callAction({
   const context = buildActionContext(contentContext);
 
   if (gestureAction.name === "openLink") {
+    const action = actions[gestureAction.name];
+    await action({ ...context, ...gestureAction.args });
+    return;
+  }
+
+  if (gestureAction.name === "openUrl") {
     const action = actions[gestureAction.name];
     await action({ ...context, ...gestureAction.args });
     return;

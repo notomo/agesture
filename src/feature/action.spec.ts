@@ -33,6 +33,19 @@ describe("GestureActionSchema", () => {
     expect(result).toEqual(openLinkAction);
   });
 
+  it("should parse openUrl action", () => {
+    const openUrlAction = {
+      name: "openUrl",
+      args: {
+        url: "https://example.com",
+      },
+    };
+
+    const result = parse(GestureActionSchema, openUrlAction);
+
+    expect(result).toEqual(openUrlAction);
+  });
+
   it("should parse no-args action", () => {
     const bookmarkAction = {
       name: "bookmark",

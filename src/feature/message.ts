@@ -129,3 +129,17 @@ export function buildGestureMessage({
     context: buildContentActionContext({ startPoint }),
   };
 }
+
+export function buildPimenuActionMessage({
+  actionName,
+  startPoint,
+}: {
+  actionName: string;
+  startPoint: Point;
+}): PiemenuActionMessage {
+  return {
+    type: "piemenuAction",
+    actionName,
+    context: buildContentActionContext({ startPoint }),
+  };
+}

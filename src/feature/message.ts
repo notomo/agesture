@@ -13,7 +13,7 @@ import {
   string,
   union,
 } from "valibot";
-import { callAction } from "./action";
+import { type PiemenuMenu, callAction } from "./action";
 import {
   ContentActionContextSchema,
   buildContentActionContext,
@@ -44,6 +44,12 @@ type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
 
 const MessageSchema = union([GestureMessageSchema, PiemenuActionMessageSchema]);
 
+type GestureResponse =
+  | {
+      piemenu?: PiemenuMenu[];
+    }
+  | { notice?: string };
+
 export function parseGestureMessage(rawMessage: unknown) {
   return parse(GestureMessageSchema, rawMessage);
 }
@@ -52,7 +58,9 @@ export function parsePiemenuActionMessage(rawMessage: unknown) {
   return parse(PiemenuActionMessageSchema, rawMessage);
 }
 
-async function handleGestureMessage(message: GestureMessage) {
+async function handleGestureMessage(
+  message: GestureMessage,
+): Promise<GestureResponse> {
   const setting = await getSetting();
 
   const gesture = setting.gestures.find((x) => {
@@ -142,4 +150,16 @@ export function buildPimenuActionMessage({
     actionName,
     context: buildContentActionContext({ startPoint }),
   };
+}
+
+export async function sendGestureMessage({
+  directions,
+  startPoint,
+}: {
+  directions: Direction[];
+  startPoint: Point;
+}): Promise<GestureResponse> {
+  const message = buildGestureMessage({ directions, startPoint });
+  const response = await browser.runtime.sendMessage(message);
+  return response as GestureResponse;
 }

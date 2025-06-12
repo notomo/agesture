@@ -1,8 +1,8 @@
 import type { PiemenuMenu } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import {
-  buildGestureMessage,
   buildPimenuActionMessage,
+  sendGestureMessage,
 } from "@/src/feature/message";
 import { useEffect, useState } from "react";
 import { Canvas } from "./canvas";
@@ -52,11 +52,8 @@ export const App = () => {
         throw new Error("startPoint should exist when gesture is triggered");
       }
 
-      const response = await browser.runtime.sendMessage(
-        buildGestureMessage({ directions, startPoint }),
-      );
-
-      if (response?.piemenu) {
+      const response = await sendGestureMessage({ directions, startPoint });
+      if ("piemenu" in response && response?.piemenu) {
         setPiemenuData({
           menu: response.piemenu,
           center: startPoint,

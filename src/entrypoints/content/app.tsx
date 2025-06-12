@@ -1,3 +1,4 @@
+import type { PiemenuMenu } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import { buildGestureMessage } from "@/src/feature/message";
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { Piemenu } from "./piemenu";
 export const App = () => {
   const [points, setPoints] = useState<Point[]>([]);
   const [piemenuData, setPiemenuData] = useState<{
-    menu: { action: string }[];
+    menu: PiemenuMenu[];
     center: Point;
   } | null>(null);
 

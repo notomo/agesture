@@ -12,7 +12,6 @@ import {
   literal,
   object,
   optional,
-  string,
   union,
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
@@ -119,6 +118,25 @@ async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+const NoArgsActionNameSchema = union([
+  literal("bookmark"),
+  literal("removeBookmark"),
+  literal("goForward"),
+  literal("goBackward"),
+  literal("reload"),
+  literal("scrollTop"),
+  literal("scrollBottom"),
+  literal("search"),
+  literal("closeOtherTabs"),
+  literal("maximizeWindow"),
+  literal("moveTabToNewWindow"),
+]);
+const ActionNameSchema = union([
+  NoArgsActionNameSchema,
+  literal("openLink"),
+  literal("piemenu"),
+]);
+
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
   args: object({
@@ -127,14 +145,20 @@ const OpenLinkActionSchema = object({
 });
 type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
 
+const GestureActionWithoutPiemenuSchema = union([
+  OpenLinkActionSchema,
+  object({
+    name: NoArgsActionNameSchema,
+  }),
+]);
+
+const PiemenuMenuSchema = object({ action: GestureActionWithoutPiemenuSchema });
+export type PiemenuMenu = InferOutput<typeof PiemenuMenuSchema>;
+
 const PiemenuActionSchema = object({
   name: literal("piemenu"),
   args: object({
-    menus: array(
-      object({
-        action: string(),
-      }),
-    ),
+    menus: array(PiemenuMenuSchema),
   }),
 });
 type PiemenuActionArgs = InferOutput<typeof PiemenuActionSchema>["args"];
@@ -162,30 +186,14 @@ async function piemenuAction({ menus }: ActionContext & PiemenuActionArgs) {
   };
 }
 
-const NoArgsActionNameSchema = union([
-  literal("bookmark"),
-  literal("removeBookmark"),
-  literal("goForward"),
-  literal("goBackward"),
-  literal("reload"),
-  literal("scrollTop"),
-  literal("scrollBottom"),
-  literal("search"),
-  literal("closeOtherTabs"),
-  literal("maximizeWindow"),
-  literal("moveTabToNewWindow"),
-]);
-
 export const GestureActionSchema = union([
-  OpenLinkActionSchema,
+  GestureActionWithoutPiemenuSchema,
   PiemenuActionSchema,
-  object({
-    name: NoArgsActionNameSchema,
-  }),
 ]);
 
 type GestureAction = InferOutput<typeof GestureActionSchema>;
-type ActionName = GestureAction["name"];
+
+type ActionName = InferOutput<typeof ActionNameSchema>;
 
 const actions = {
   bookmark: bookmarkAction,
@@ -201,7 +209,10 @@ const actions = {
   moveTabToNewWindow: moveTabToNewWindowAction,
   openLink: openLinkAction,
   piemenu: piemenuAction,
-} as const satisfies Record<ActionName, unknown>;
+} as const satisfies Record<ActionName, unknown> satisfies Record<
+  GestureAction["name"],
+  unknown
+>;
 
 export async function callAction({
   gestureAction,

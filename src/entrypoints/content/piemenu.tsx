@@ -1,20 +1,19 @@
+import type { PiemenuMenu } from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { useCallback, useEffect, useState } from "react";
-
-interface PiemenuProps {
-  menu: { action: string }[];
-  center: Point;
-  onClose: () => void;
-  onSelectAction: (actionName: string) => void;
-}
 
 export const Piemenu = ({
   menu,
   center,
   onClose,
   onSelectAction,
-}: PiemenuProps) => {
+}: {
+  menu: PiemenuMenu[];
+  center: Point;
+  onClose: () => void;
+  onSelectAction: (actionName: string) => void;
+}) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   const radius = 140;
@@ -59,7 +58,7 @@ export const Piemenu = ({
       if (e.button === 0 && highlightedIndex >= 0) {
         const menuItem = menu[highlightedIndex];
         if (menuItem) {
-          onSelectAction(menuItem.action);
+          onSelectAction(menuItem.action.name);
         }
         onClose();
       } else if (e.button === 2) {
@@ -93,7 +92,7 @@ export const Piemenu = ({
 
           return (
             <div
-              key={item.action}
+              key={item.action.name}
               className={cn(
                 "absolute rounded-full flex items-center justify-center transition-all duration-200",
                 isHighlighted
@@ -120,7 +119,7 @@ export const Piemenu = ({
                     : "0 1px 1px rgba(0, 0, 0, 0.8)",
                 }}
               >
-                {item.action}
+                {item.action.name}
               </span>
             </div>
           );

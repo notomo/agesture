@@ -81,11 +81,11 @@ export const DEFAULT_SETTING: Setting = {
         name: "piemenu",
         args: {
           menus: [
-            { action: "maximizeWindow" },
-            { action: "reload" },
-            { action: "bookmark" },
-            { action: "goBack" },
-            { action: "goForward" },
+            { action: { name: "maximizeWindow" } },
+            { action: { name: "reload" } },
+            { action: { name: "bookmark" } },
+            { action: { name: "goBackward" } },
+            { action: { name: "goForward" } },
           ],
         },
       },

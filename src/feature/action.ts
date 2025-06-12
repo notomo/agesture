@@ -6,13 +6,12 @@
  */
 
 import {
-  type GenericSchema,
   type InferOutput,
   array,
   boolean,
-  lazy,
   literal,
   object,
+  optional,
   union,
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
@@ -141,7 +140,7 @@ const ActionNameSchema = union([
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
   args: object({
-    active: boolean(),
+    active: optional(boolean(), true),
   }),
 });
 type OpenLinkActionArgs = InferOutput<typeof OpenLinkActionSchema>["args"];
@@ -152,27 +151,8 @@ const GestureActionWithoutPiemenuSchema = union([
     name: NoArgsActionNameSchema,
   }),
 ]);
-type GestureActionWithoutPiemenu = InferOutput<
-  typeof GestureActionWithoutPiemenuSchema
->;
 
-type PiemenuAction =
-  | GestureActionWithoutPiemenu
-  | {
-      name: "piemenu";
-      args: {
-        menus: { action: PiemenuAction }[];
-      };
-    };
-
-const PiemenuMenuActionSchema: GenericSchema<PiemenuAction> = union([
-  GestureActionWithoutPiemenuSchema,
-  lazy(() => PiemenuMenuActionSchema),
-]);
-
-const PiemenuMenuSchema = object({
-  action: PiemenuMenuActionSchema,
-});
+const PiemenuMenuSchema = object({ action: GestureActionWithoutPiemenuSchema });
 export type PiemenuMenu = InferOutput<typeof PiemenuMenuSchema>;
 
 const PiemenuActionSchema = object({

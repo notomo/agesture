@@ -20,7 +20,6 @@ export const Piemenu = ({
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   const radius = 140;
-  const itemRadius = 50;
 
   const getMenuItemPosition = (index: number) => {
     const angle = (index * 2 * Math.PI) / menu.length - Math.PI / 2;
@@ -173,23 +172,18 @@ export const Piemenu = ({
           return (
             <div
               key={item.label}
-              className={cn(
-                "absolute rounded-full flex items-center justify-center transition-all duration-150",
-                isHighlighted
-                  ? "bg-blue-500/90 border-blue-400 border-3 shadow-lg shadow-blue-500/30 scale-110"
-                  : "bg-gray-900/90 border-gray-500 border-2 shadow-md shadow-black/30",
-              )}
+              className="absolute flex items-center justify-center transition-all duration-150"
               style={{
-                left: pos.x - itemRadius,
-                top: pos.y - itemRadius,
-                width: itemRadius * 2,
-                height: itemRadius * 2,
+                left: pos.x - 60,
+                top: pos.y - 15,
+                width: 120,
+                height: 30,
               }}
             >
               <span
                 className={cn(
-                  "font-sans text-base drop-shadow-sm font-medium select-none transition-all duration-150",
-                  isHighlighted ? "text-white" : "text-gray-200",
+                  "font-sans font-semibold text-lg shadow-lg select-none transition-all duration-150 px-3 py-1 rounded-md",
+                  isHighlighted ? "text-white" : "text-gray-100",
                 )}
               >
                 {item.label}

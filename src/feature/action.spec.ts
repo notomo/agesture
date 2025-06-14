@@ -75,6 +75,16 @@ describe("GestureActionSchema", () => {
     });
   });
 
+  it("should parse moveTabToNextWindow action", () => {
+    const moveTabToNextWindowAction = {
+      name: "moveTabToNextWindow",
+    };
+
+    const result = parse(GestureActionSchema, moveTabToNextWindowAction);
+
+    expect(result).toEqual(moveTabToNextWindowAction);
+  });
+
   it("should parse no-args action", () => {
     const bookmarkAction = {
       name: "bookmark",

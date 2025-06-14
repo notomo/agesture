@@ -133,6 +133,43 @@ async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  const allWindows = await browser.windows.getAll();
+
+  // Sort windows by ID to ensure consistent ordering
+  const sortedWindows = allWindows
+    .filter((window) => window.id !== undefined)
+    .sort((a, b) => (a.id || 0) - (b.id || 0));
+
+  if (sortedWindows.length <= 1) {
+    // Only one window exists, create a new one
+    await browser.windows.create({
+      tabId: tab.id,
+    });
+    return;
+  }
+
+  const currentWindowIndex = sortedWindows.findIndex(
+    (window) => window.id === tab.windowId,
+  );
+
+  if (currentWindowIndex === -1) {
+    return;
+  }
+
+  // Get next window (wrap around to first if at the end)
+  const nextWindowIndex = (currentWindowIndex + 1) % sortedWindows.length;
+  const nextWindow = sortedWindows[nextWindowIndex];
+
+  if (nextWindow?.id) {
+    await browser.tabs.move(tab.id, {
+      windowId: nextWindow.id,
+      index: -1, // Move to end of tab list
+    });
+  }
+}
+
 async function doNothingAction(_: ActionContext) {
   // Intentionally does nothing
 }
@@ -148,6 +185,7 @@ const NoArgsActionNameSchema = union([
   literal("search"),
   literal("closeOtherTabs"),
   literal("moveTabToNewWindow"),
+  literal("moveTabToNextWindow"),
   literal("doNothing"),
 ]);
 const ActionNameSchema = union([
@@ -263,6 +301,7 @@ const actions = {
   closeOtherTabs: closeOtherTabsAction,
   maximizeWindow: maximizeWindowAction,
   moveTabToNewWindow: moveTabToNewWindowAction,
+  moveTabToNextWindow: moveTabToNextWindowAction,
   doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,

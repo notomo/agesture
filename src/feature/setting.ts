@@ -50,7 +50,7 @@ export const DEFAULT_SETTING: Setting = {
       inputs: ["DOWN", "RIGHT", "UP"],
       action: [
         {
-          name: "moveTabToNewWindow",
+          name: "moveTabToNextWindow",
         },
         {
           name: "maximizeWindow",

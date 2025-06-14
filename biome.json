@@ -24,7 +24,14 @@
         "useLiteralKeys": "off"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": {
+          "level": "warn",
+          "fix": "none"
+        },
+        "noUnusedImports": {
+          "level": "warn",
+          "fix": "unsafe"
+        }
       }
     }
   },

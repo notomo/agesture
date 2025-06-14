@@ -136,7 +136,7 @@ export const Piemenu = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
+    <div className="fixed inset-0 z-9999 pointer-events-none">
       <div className="pointer-events-auto w-full h-full">
         <svg
           className="absolute inset-0 w-full h-full"
@@ -153,8 +153,8 @@ export const Piemenu = ({
                 className={cn(
                   "transition-all duration-150",
                   isHighlighted
-                    ? "fill-blue-500/40 stroke-blue-500/70 stroke-2"
-                    : "fill-gray-600/30 stroke-gray-600/50 stroke-1",
+                    ? "fill-blue-500/80 stroke-blue-500/90 stroke-2"
+                    : "fill-gray-600/80 stroke-gray-600/90 stroke-1",
                 )}
               />
             );
@@ -162,23 +162,18 @@ export const Piemenu = ({
         </svg>
         {menu.map((item, index) => {
           const textPos = getTextPosition(index);
-          const isHighlighted = index === highlightedIndex;
-
           return (
             <div
               key={item.label}
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
+              className="absolute w-30 h-8 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
               style={{
                 left: textPos.x,
                 top: textPos.y,
-                width: 120,
-                height: 30,
               }}
             >
               <span
                 className={cn(
-                  "font-sans font-semibold text-lg select-none transition-all duration-150 px-3 py-1 rounded-md",
-                  isHighlighted ? "text-white" : "text-gray-100",
+                  "font-sans font-semibold text-white text-xl select-none transition-all duration-150 px-3 py-1 rounded-md",
                 )}
               >
                 {item.label}
@@ -186,13 +181,6 @@ export const Piemenu = ({
             </div>
           );
         })}
-        <div
-          className="absolute w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-600/20 border"
-          style={{
-            left: center.x,
-            top: center.y,
-          }}
-        />
       </div>
     </div>
   );

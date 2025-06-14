@@ -46,6 +46,35 @@ describe("GestureActionSchema", () => {
     expect(result).toEqual(openUrlAction);
   });
 
+  it("should parse maximizeWindow action", () => {
+    const maximizeWindowAction = {
+      name: "maximizeWindow",
+      args: {
+        all: true,
+      },
+    };
+
+    const result = parse(GestureActionSchema, maximizeWindowAction);
+
+    expect(result).toEqual(maximizeWindowAction);
+  });
+
+  it("should parse maximizeWindow action without all arg", () => {
+    const maximizeWindowAction = {
+      name: "maximizeWindow",
+      args: {},
+    };
+
+    const result = parse(GestureActionSchema, maximizeWindowAction);
+
+    expect(result).toEqual({
+      name: "maximizeWindow",
+      args: {
+        all: false,
+      },
+    });
+  });
+
   it("should parse no-args action", () => {
     const bookmarkAction = {
       name: "bookmark",

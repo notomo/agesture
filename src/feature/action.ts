@@ -105,11 +105,25 @@ async function closeOtherTabsAction({ getCurrentTab }: ActionContext) {
   await browser.tabs.remove(tabsToClose);
 }
 
-async function maximizeWindowAction({ getCurrentTab }: ActionContext) {
-  const tab = await getCurrentTab();
-  await browser.windows.update(tab.windowId, {
-    state: "maximized",
-  });
+async function maximizeWindowAction({
+  getCurrentTab,
+  all,
+}: ActionContext & { all?: boolean }) {
+  if (all) {
+    const allWindows = await browser.windows.getAll();
+    for (const window of allWindows) {
+      if (window.id) {
+        await browser.windows.update(window.id, {
+          state: "maximized",
+        });
+      }
+    }
+  } else {
+    const tab = await getCurrentTab();
+    await browser.windows.update(tab.windowId, {
+      state: "maximized",
+    });
+  }
 }
 
 async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
@@ -133,7 +147,6 @@ const NoArgsActionNameSchema = union([
   literal("scrollBottom"),
   literal("search"),
   literal("closeOtherTabs"),
-  literal("maximizeWindow"),
   literal("moveTabToNewWindow"),
   literal("doNothing"),
 ]);
@@ -142,6 +155,7 @@ const ActionNameSchema = union([
   literal("openLink"),
   literal("openUrl"),
   literal("piemenu"),
+  literal("maximizeWindow"),
 ]);
 
 const OpenLinkActionSchema = object({
@@ -160,9 +174,17 @@ const OpenUrlActionSchema = object({
 });
 type OpenUrlActionArgs = InferOutput<typeof OpenUrlActionSchema>["args"];
 
+const MaximizeWindowActionSchema = object({
+  name: literal("maximizeWindow"),
+  args: object({
+    all: optional(boolean(), false),
+  }),
+});
+
 export const GestureActionWithoutPiemenuSchema = union([
   OpenLinkActionSchema,
   OpenUrlActionSchema,
+  MaximizeWindowActionSchema,
   object({
     name: NoArgsActionNameSchema,
   }),
@@ -268,6 +290,12 @@ export async function callAction({
   if (gestureAction.name === "openUrl") {
     const action = actions[gestureAction.name];
     await action({ ...context, ...gestureAction.args });
+    return;
+  }
+
+  if (gestureAction.name === "maximizeWindow") {
+    const action = actions[gestureAction.name];
+    await action({ ...context, all: gestureAction.args.all });
     return;
   }
 

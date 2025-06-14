@@ -54,6 +54,9 @@ export const DEFAULT_SETTING: Setting = {
         },
         {
           name: "maximizeWindow",
+          args: {
+            all: false,
+          },
         },
       ],
     },
@@ -99,6 +102,15 @@ export const DEFAULT_SETTING: Setting = {
             {
               label: "Bookmarks",
               action: { name: "openUrl", args: { url: "chrome://bookmarks/" } },
+            },
+            {
+              label: "Maximize",
+              action: {
+                name: "maximizeWindow",
+                args: {
+                  all: true,
+                },
+              },
             },
           ],
         },

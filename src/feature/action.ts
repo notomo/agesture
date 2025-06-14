@@ -109,20 +109,21 @@ async function maximizeWindowAction({
   getCurrentTab,
   all,
 }: ActionContext & { all?: boolean }) {
-  if (all) {
-    const allWindows = await browser.windows.getAll();
-    for (const window of allWindows) {
-      if (window.id) {
-        await browser.windows.update(window.id, {
-          state: "maximized",
-        });
-      }
-    }
-  } else {
+  if (!all) {
     const tab = await getCurrentTab();
     await browser.windows.update(tab.windowId, {
       state: "maximized",
     });
+    return;
+  }
+
+  const allWindows = await browser.windows.getAll();
+  for (const window of allWindows) {
+    if (window.id) {
+      await browser.windows.update(window.id, {
+        state: "maximized",
+      });
+    }
   }
 }
 
@@ -130,13 +131,10 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   const allWindows = await browser.windows.getAll();
 
-  // Sort windows by ID to ensure consistent ordering
   const sortedWindows = allWindows
     .filter((window) => window.id !== undefined)
     .sort((a, b) => (a.id || 0) - (b.id || 0));
-
   if (sortedWindows.length <= 1) {
-    // Only one window exists, create a new one
     await browser.windows.create({
       tabId: tab.id,
     });
@@ -146,15 +144,12 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
   const currentWindowIndex = sortedWindows.findIndex(
     (window) => window.id === tab.windowId,
   );
-
   if (currentWindowIndex === -1) {
     return;
   }
 
-  // Get next window (wrap around to first if at the end)
   const nextWindowIndex = (currentWindowIndex + 1) % sortedWindows.length;
   const nextWindow = sortedWindows[nextWindowIndex];
-
   if (nextWindow?.id) {
     await browser.tabs.move(tab.id, {
       windowId: nextWindow.id,

@@ -8,7 +8,7 @@ export default defineBackground({
           if (x.type === "message") {
             console.log(x.notice);
           }
-          sendResponse(x || { success: true });
+          sendResponse(x);
         });
         // Return true to indicate async response
         return true;

@@ -160,7 +160,7 @@ const OpenUrlActionSchema = object({
 });
 type OpenUrlActionArgs = InferOutput<typeof OpenUrlActionSchema>["args"];
 
-const GestureActionWithoutPiemenuSchema = union([
+export const GestureActionWithoutPiemenuSchema = union([
   OpenLinkActionSchema,
   OpenUrlActionSchema,
   object({

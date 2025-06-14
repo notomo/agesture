@@ -10,10 +10,13 @@ import {
   literal,
   object,
   parse,
-  string,
   union,
 } from "valibot";
-import { type PiemenuMenu, callAction } from "./action";
+import {
+  GestureActionWithoutPiemenuSchema,
+  type PiemenuMenu,
+  callAction,
+} from "./action";
 import {
   ContentActionContextSchema,
   buildContentActionContext,
@@ -36,7 +39,7 @@ type GestureMessage = InferOutput<typeof GestureMessageSchema>;
 
 const PiemenuActionMessageSchema = object({
   type: literal("piemenuAction"),
-  actionName: string(),
+  action: GestureActionWithoutPiemenuSchema,
   context: ContentActionContextSchema,
 });
 
@@ -90,26 +93,10 @@ async function handleGestureMessage(
 }
 
 async function handlePiemenuActionMessage(message: PiemenuActionMessage) {
-  const setting = await getSetting();
-
-  const gesture = setting.gestures.find((g) => {
-    const actions = Array.isArray(g.action) ? g.action : [g.action];
-    return actions.some((a) => a.name === message.actionName);
+  await callAction({
+    gestureAction: message.action,
+    contentContext: message.context,
   });
-
-  if (gesture) {
-    const actions = Array.isArray(gesture.action)
-      ? gesture.action
-      : [gesture.action];
-    const action = actions.find((a) => a.name === message.actionName);
-
-    if (action) {
-      await callAction({
-        gestureAction: action,
-        contentContext: message.context,
-      });
-    }
-  }
 }
 
 export async function handleMessage(rawMessage: unknown) {
@@ -139,15 +126,15 @@ export function buildGestureMessage({
 }
 
 export function buildPimenuActionMessage({
-  actionName,
+  action,
   startPoint,
 }: {
-  actionName: string;
+  action: InferOutput<typeof GestureActionWithoutPiemenuSchema>;
   startPoint: Point;
 }): PiemenuActionMessage {
   return {
     type: "piemenuAction",
-    actionName,
+    action,
     context: buildContentActionContext({ startPoint }),
   };
 }

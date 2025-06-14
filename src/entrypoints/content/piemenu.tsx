@@ -1,7 +1,11 @@
-import type { PiemenuMenu } from "@/src/feature/action";
+import type {
+  GestureActionWithoutPiemenuSchema,
+  PiemenuMenu,
+} from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { useCallback, useEffect, useState } from "react";
+import type { InferOutput } from "valibot";
 
 export const Piemenu = ({
   menu,
@@ -12,7 +16,9 @@ export const Piemenu = ({
   menu: PiemenuMenu[];
   center: Point;
   onClose: () => void;
-  onSelectAction: (actionName: string) => void;
+  onSelectAction: (
+    action: InferOutput<typeof GestureActionWithoutPiemenuSchema>,
+  ) => void;
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
@@ -58,7 +64,7 @@ export const Piemenu = ({
       if (e.button === 0 && highlightedIndex >= 0) {
         const menuItem = menu[highlightedIndex];
         if (menuItem) {
-          onSelectAction(menuItem.action.name);
+          onSelectAction(menuItem.action);
         }
         onClose();
       } else if (e.button === 2) {

@@ -21,7 +21,9 @@ describe("parsePiemenuActionMessage", () => {
   it("should parse valid piemenu action message", () => {
     const validMessage = {
       type: "piemenuAction",
-      actionName: "bookmark",
+      action: {
+        name: "bookmark",
+      },
       context: {
         selectedText: "sample text",
       },

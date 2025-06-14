@@ -1,10 +1,14 @@
-import type { PiemenuMenu } from "@/src/feature/action";
+import type {
+  GestureActionWithoutPiemenuSchema,
+  PiemenuMenu,
+} from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import {
   buildPimenuActionMessage,
   sendGestureMessage,
 } from "@/src/feature/message";
 import { useEffect, useState } from "react";
+import type { InferOutput } from "valibot";
 import { Canvas } from "./canvas";
 import { Piemenu } from "./piemenu";
 
@@ -86,12 +90,14 @@ export const App = () => {
     };
   }, [hasPoint]);
 
-  const handleSelectAction = async (actionName: string) => {
+  const handleSelectAction = async (
+    action: InferOutput<typeof GestureActionWithoutPiemenuSchema>,
+  ) => {
     if (piemenuData === null) {
       return;
     }
     const piemenuActionMessage = buildPimenuActionMessage({
-      actionName,
+      action,
       startPoint: piemenuData.center,
     });
     await browser.runtime.sendMessage(piemenuActionMessage);

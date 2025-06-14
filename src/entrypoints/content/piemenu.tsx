@@ -99,9 +99,73 @@ export const Piemenu = ({
     };
   }, [menu, highlightedIndex, onClose, onSelectAction, getHighlightedIndex]);
 
+  const createSectorPath = (index: number) => {
+    const angleStep = (2 * Math.PI) / menu.length;
+    const startAngle = index * angleStep - Math.PI / 2 - angleStep / 2;
+    const endAngle = startAngle + angleStep;
+    const outerRadius = radius + 40;
+    const innerRadius = 35;
+
+    const startOuter = {
+      x: center.x + Math.cos(startAngle) * outerRadius,
+      y: center.y + Math.sin(startAngle) * outerRadius,
+    };
+    const endOuter = {
+      x: center.x + Math.cos(endAngle) * outerRadius,
+      y: center.y + Math.sin(endAngle) * outerRadius,
+    };
+    const startInner = {
+      x: center.x + Math.cos(startAngle) * innerRadius,
+      y: center.y + Math.sin(startAngle) * innerRadius,
+    };
+    const endInner = {
+      x: center.x + Math.cos(endAngle) * innerRadius,
+      y: center.y + Math.sin(endAngle) * innerRadius,
+    };
+
+    const largeArcFlag = angleStep > Math.PI ? 1 : 0;
+
+    return `
+      M ${startInner.x} ${startInner.y}
+      L ${startOuter.x} ${startOuter.y}
+      A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
+      L ${endInner.x} ${endInner.y}
+      A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
+      Z
+    `;
+  };
+
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div className="pointer-events-auto w-full h-full">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          style={{ pointerEvents: "none" }}
+          role="img"
+          aria-label="Piemenu selection areas"
+        >
+          {menu.map((item, index) => {
+            const isHighlighted = index === highlightedIndex;
+            return (
+              <path
+                key={`sector-${item.label}`}
+                d={createSectorPath(index)}
+                fill={
+                  isHighlighted
+                    ? "rgba(59, 130, 246, 0.2)"
+                    : "rgba(75, 85, 99, 0.1)"
+                }
+                stroke={
+                  isHighlighted
+                    ? "rgba(59, 130, 246, 0.4)"
+                    : "rgba(75, 85, 99, 0.2)"
+                }
+                strokeWidth={isHighlighted ? 2 : 1}
+                className="transition-all duration-150"
+              />
+            );
+          })}
+        </svg>
         {menu.map((item, index) => {
           const pos = getMenuItemPosition(index);
           const isHighlighted = index === highlightedIndex;

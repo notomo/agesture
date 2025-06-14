@@ -19,7 +19,7 @@ export const Piemenu = ({
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const radius = 140;
+  const radius = 200;
 
   const getMenuItemPosition = (index: number) => {
     const angle = (index * 2 * Math.PI) / menu.length - Math.PI / 2;
@@ -149,18 +149,12 @@ export const Piemenu = ({
               <path
                 key={`sector-${item.label}`}
                 d={createSectorPath(index)}
-                fill={
+                className={cn(
+                  "transition-all duration-150",
                   isHighlighted
-                    ? "rgba(59, 130, 246, 0.2)"
-                    : "rgba(75, 85, 99, 0.1)"
-                }
-                stroke={
-                  isHighlighted
-                    ? "rgba(59, 130, 246, 0.4)"
-                    : "rgba(75, 85, 99, 0.2)"
-                }
-                strokeWidth={isHighlighted ? 2 : 1}
-                className="transition-all duration-150"
+                    ? "fill-blue-500/40 stroke-blue-500/70 stroke-2"
+                    : "fill-gray-600/30 stroke-gray-600/50 stroke-1",
+                )}
               />
             );
           })}
@@ -172,17 +166,17 @@ export const Piemenu = ({
           return (
             <div
               key={item.label}
-              className="absolute flex items-center justify-center transition-all duration-150"
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
               style={{
-                left: pos.x - 60,
-                top: pos.y - 15,
+                left: pos.x,
+                top: pos.y,
                 width: 120,
                 height: 30,
               }}
             >
               <span
                 className={cn(
-                  "font-sans font-semibold text-lg shadow-lg select-none transition-all duration-150 px-3 py-1 rounded-md",
+                  "font-sans font-semibold text-lg select-none transition-all duration-150 px-3 py-1 rounded-md",
                   isHighlighted ? "text-white" : "text-gray-100",
                 )}
               >
@@ -192,10 +186,10 @@ export const Piemenu = ({
           );
         })}
         <div
-          className="absolute w-7 h-7 rounded-full bg-gray-600/90 border-gray-400 border-2 shadow-md shadow-black/40"
+          className="absolute w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-600/20 border"
           style={{
-            left: center.x - 15,
-            top: center.y - 15,
+            left: center.x,
+            top: center.y,
           }}
         />
       </div>

@@ -14,7 +14,8 @@
     "check": "biome check .",
     "test": "vitest run",
     "all": "npm run format && npm run check && npm run typecheck && npm run test",
-    "for_agent": "bash ./script/run.sh format && bash ./script/run.sh check && bash ./script/run.sh typecheck && bash ./script/run.sh test"
+    "for_agent": "bash ./script/run.sh format && bash ./script/run.sh check && bash ./script/run.sh typecheck && bash ./script/run.sh test",
+    "deploy_for_local": "npm run build && cp -rf ./.output/chrome-mv3/ $AGESTURE_LOCAL"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

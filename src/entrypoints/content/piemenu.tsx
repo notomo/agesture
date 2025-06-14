@@ -19,13 +19,14 @@ export const Piemenu = ({
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const radius = 200;
+  const radius = 180;
 
-  const getMenuItemPosition = (index: number) => {
+  const getTextPosition = (index: number) => {
     const angle = (index * 2 * Math.PI) / menu.length - Math.PI / 2;
+    const textRadius = radius * 0.7; // 70% of the outer radius to move text closer to center
     return {
-      x: center.x + Math.cos(angle) * radius,
-      y: center.y + Math.sin(angle) * radius,
+      x: center.x + Math.cos(angle) * textRadius,
+      y: center.y + Math.sin(angle) * textRadius,
     };
   };
 
@@ -160,7 +161,7 @@ export const Piemenu = ({
           })}
         </svg>
         {menu.map((item, index) => {
-          const pos = getMenuItemPosition(index);
+          const textPos = getTextPosition(index);
           const isHighlighted = index === highlightedIndex;
 
           return (
@@ -168,8 +169,8 @@ export const Piemenu = ({
               key={item.label}
               className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
               style={{
-                left: pos.x,
-                top: pos.y,
+                left: textPos.x,
+                top: textPos.y,
                 width: 120,
                 height: 30,
               }}

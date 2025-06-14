@@ -168,6 +168,10 @@ export const GestureActionWithoutPiemenuSchema = union([
   }),
 ]);
 
+export type GestureActionWithoutPiemenu = InferOutput<
+  typeof GestureActionWithoutPiemenuSchema
+>;
+
 const PiemenuMenuSchema = object({
   label: string(),
   action: GestureActionWithoutPiemenuSchema,

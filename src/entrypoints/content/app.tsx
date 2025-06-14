@@ -1,5 +1,5 @@
 import type {
-  GestureActionWithoutPiemenuSchema,
+  GestureActionWithoutPiemenu,
   PiemenuMenu,
 } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
@@ -8,7 +8,6 @@ import {
   sendGestureMessage,
 } from "@/src/feature/message";
 import { useEffect, useState } from "react";
-import type { InferOutput } from "valibot";
 import { Canvas } from "./canvas";
 import { Piemenu } from "./piemenu";
 
@@ -90,9 +89,7 @@ export const App = () => {
     };
   }, [hasPoint]);
 
-  const handleSelectAction = async (
-    action: InferOutput<typeof GestureActionWithoutPiemenuSchema>,
-  ) => {
+  const handleSelectAction = async (action: GestureActionWithoutPiemenu) => {
     if (piemenuData === null) {
       return;
     }

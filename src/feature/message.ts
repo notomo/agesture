@@ -13,6 +13,7 @@ import {
   union,
 } from "valibot";
 import {
+  type GestureActionWithoutPiemenu,
   GestureActionWithoutPiemenuSchema,
   type PiemenuMenu,
   callAction,
@@ -129,7 +130,7 @@ export function buildPimenuActionMessage({
   action,
   startPoint,
 }: {
-  action: InferOutput<typeof GestureActionWithoutPiemenuSchema>;
+  action: GestureActionWithoutPiemenu;
   startPoint: Point;
 }): PiemenuActionMessage {
   return {

@@ -110,7 +110,7 @@ export const Piemenu = ({
             <div
               key={item.label}
               className={cn(
-                "absolute rounded-full flex items-center justify-center transition-all duration-200",
+                "absolute rounded-full flex items-center justify-center transition-all duration-150",
                 isHighlighted
                   ? "bg-blue-500/90 border-blue-400 border-3 shadow-lg shadow-blue-500/30 scale-110"
                   : "bg-gray-900/90 border-gray-500 border-2 shadow-md shadow-black/30",
@@ -124,16 +124,9 @@ export const Piemenu = ({
             >
               <span
                 className={cn(
-                  "font-sans select-none transition-all duration-200",
-                  isHighlighted
-                    ? "text-white text-lg font-semibold drop-shadow-sm"
-                    : "text-gray-200 text-base font-medium drop-shadow-sm",
+                  "font-sans text-base drop-shadow-sm font-medium select-none transition-all duration-150",
+                  isHighlighted ? "text-white" : "text-gray-200",
                 )}
-                style={{
-                  textShadow: isHighlighted
-                    ? "0 1px 2px rgba(0, 0, 0, 0.5)"
-                    : "0 1px 1px rgba(0, 0, 0, 0.8)",
-                }}
               >
                 {item.label}
               </span>
@@ -141,12 +134,10 @@ export const Piemenu = ({
           );
         })}
         <div
-          className="absolute rounded-full bg-gray-600/90 border-gray-400 border-2 shadow-md shadow-black/40"
+          className="absolute w-7 h-7 rounded-full bg-gray-600/90 border-gray-400 border-2 shadow-md shadow-black/40"
           style={{
             left: center.x - 15,
             top: center.y - 15,
-            width: 30,
-            height: 30,
           }}
         />
       </div>

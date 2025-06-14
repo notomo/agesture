@@ -40,12 +40,25 @@ export const Piemenu = ({
 
       if (distance < 35) return -1;
 
-      const angle = Math.atan2(dy, dx) + Math.PI / 2;
-      const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
-      const segmentAngle = (2 * Math.PI) / menu.length;
-      const index = Math.floor(normalizedAngle / segmentAngle);
+      const mouseAngle = Math.atan2(dy, dx);
+      let closestIndex = -1;
+      let smallestAngleDiff = Number.POSITIVE_INFINITY;
 
-      return index % menu.length;
+      for (let i = 0; i < menu.length; i++) {
+        const itemAngle = (i * 2 * Math.PI) / menu.length - Math.PI / 2;
+        let angleDiff = Math.abs(mouseAngle - itemAngle);
+
+        if (angleDiff > Math.PI) {
+          angleDiff = 2 * Math.PI - angleDiff;
+        }
+
+        if (angleDiff < smallestAngleDiff) {
+          smallestAngleDiff = angleDiff;
+          closestIndex = i;
+        }
+      }
+
+      return closestIndex;
     },
     [menu.length, center.x, center.y],
   );

@@ -89,12 +89,12 @@ export const Piemenu = ({
     };
 
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("mouseup", handleClick);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("mouseup", handleClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [menu, highlightedIndex, onClose, onSelectAction, getHighlightedIndex]);

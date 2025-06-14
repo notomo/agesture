@@ -76,9 +76,10 @@ export const App = () => {
   }, [points]);
 
   const hasPoint = points.length > 0;
+  const pimenuExists = piemenuData !== null;
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
-      if (!hasPoint) {
+      if (!hasPoint && !pimenuExists) {
         return;
       }
       e.preventDefault();
@@ -87,7 +88,7 @@ export const App = () => {
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, [hasPoint]);
+  }, [hasPoint, pimenuExists]);
 
   const handleSelectAction = async (action: GestureActionWithoutPiemenu) => {
     if (piemenuData === null) {
@@ -106,7 +107,12 @@ export const App = () => {
         <Piemenu
           menu={piemenuData.menu}
           center={piemenuData.center}
-          onClose={() => setPiemenuData(null)}
+          onClose={() => {
+            // to prevent context menu
+            setTimeout(() => {
+              setPiemenuData(null);
+            });
+          }}
           onSelectAction={handleSelectAction}
         />
       )}

@@ -96,6 +96,10 @@ export const DEFAULT_SETTING: Setting = {
               label: "Bookmarks",
               action: { name: "openUrl", args: { url: "chrome://bookmarks/" } },
             },
+            {
+              label: "Cancel",
+              action: { name: "doNothing" },
+            },
           ],
         },
       },

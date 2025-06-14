@@ -119,6 +119,10 @@ async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function doNothingAction(_: ActionContext) {
+  // Intentionally does nothing
+}
+
 const NoArgsActionNameSchema = union([
   literal("bookmark"),
   literal("removeBookmark"),
@@ -131,6 +135,7 @@ const NoArgsActionNameSchema = union([
   literal("closeOtherTabs"),
   literal("maximizeWindow"),
   literal("moveTabToNewWindow"),
+  literal("doNothing"),
 ]);
 const ActionNameSchema = union([
   NoArgsActionNameSchema,
@@ -232,6 +237,7 @@ const actions = {
   closeOtherTabs: closeOtherTabsAction,
   maximizeWindow: maximizeWindowAction,
   moveTabToNewWindow: moveTabToNewWindowAction,
+  doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,
   piemenu: piemenuAction,

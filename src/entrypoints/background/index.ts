@@ -5,7 +5,7 @@ export default defineBackground({
     browser.runtime.onMessage.addListener(
       (rawMessage, _sender, sendResponse) => {
         handleMessage(rawMessage).then((x) => {
-          if (x && "notice" in x && x.notice) {
+          if (x.type === "message") {
             console.log(x.notice);
           }
           sendResponse(x || { success: true });

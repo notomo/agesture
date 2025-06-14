@@ -126,13 +126,6 @@ async function maximizeWindowAction({
   }
 }
 
-async function moveTabToNewWindowAction({ getCurrentTab }: ActionContext) {
-  const tab = await getCurrentTab();
-  await browser.windows.create({
-    tabId: tab.id,
-  });
-}
-
 async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   const allWindows = await browser.windows.getAll();
@@ -184,7 +177,6 @@ const NoArgsActionNameSchema = union([
   literal("scrollBottom"),
   literal("search"),
   literal("closeOtherTabs"),
-  literal("moveTabToNewWindow"),
   literal("moveTabToNextWindow"),
   literal("doNothing"),
 ]);
@@ -300,7 +292,6 @@ const actions = {
   search: searchAction,
   closeOtherTabs: closeOtherTabsAction,
   maximizeWindow: maximizeWindowAction,
-  moveTabToNewWindow: moveTabToNewWindowAction,
   moveTabToNextWindow: moveTabToNextWindowAction,
   doNothing: doNothingAction,
   openLink: openLinkAction,
@@ -334,7 +325,7 @@ export async function callAction({
 
   if (gestureAction.name === "maximizeWindow") {
     const action = actions[gestureAction.name];
-    await action({ ...context, all: gestureAction.args.all });
+    await action({ ...context, ...gestureAction.args });
     return;
   }
 

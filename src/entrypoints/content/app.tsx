@@ -4,8 +4,8 @@ import type {
 } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import {
-  buildPimenuActionMessage,
   sendGestureMessage,
+  sendPimenuActionMessage,
 } from "@/src/feature/message";
 import { useEffect, useState } from "react";
 import { Canvas } from "./canvas";
@@ -56,7 +56,7 @@ export const App = () => {
       }
 
       const response = await sendGestureMessage({ directions, startPoint });
-      if ("piemenu" in response && response?.piemenu) {
+      if (response.type === "piemenu") {
         setPiemenuData({
           menu: response.piemenu,
           center: startPoint,
@@ -93,11 +93,10 @@ export const App = () => {
     if (piemenuData === null) {
       return;
     }
-    const piemenuActionMessage = buildPimenuActionMessage({
+    await sendPimenuActionMessage({
       action,
       startPoint: piemenuData.center,
     });
-    await browser.runtime.sendMessage(piemenuActionMessage);
   };
 
   return (

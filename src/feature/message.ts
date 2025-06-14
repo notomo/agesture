@@ -50,9 +50,16 @@ const MessageSchema = union([GestureMessageSchema, PiemenuActionMessageSchema]);
 
 type GestureResponse =
   | {
-      piemenu?: PiemenuMenu[];
+      type: "piemenu";
+      piemenu: PiemenuMenu[];
     }
-  | { notice?: string };
+  | {
+      type: "message";
+      notice: string;
+    }
+  | {
+      type: "none";
+    };
 
 export function parseGestureMessage(rawMessage: unknown) {
   return parse(GestureMessageSchema, rawMessage);
@@ -72,6 +79,7 @@ async function handleGestureMessage(
   });
   if (!gesture) {
     return {
+      type: "message",
       notice: `No matching gesture found for directions: ${message.directions.join(",")}`,
     };
   }
@@ -86,58 +94,63 @@ async function handleGestureMessage(
       contentContext: message.context,
     });
     if (result) {
-      return result;
+      return {
+        type: "piemenu",
+        piemenu: result.piemenu,
+      };
     }
   }
 
-  return {};
+  return {
+    type: "none",
+  };
 }
 
-async function handlePiemenuActionMessage(message: PiemenuActionMessage) {
+type PiemenuActionResponse = {
+  type: "none";
+};
+
+async function handlePiemenuActionMessage(
+  message: PiemenuActionMessage,
+): Promise<PiemenuActionResponse> {
   await callAction({
     gestureAction: message.action,
     contentContext: message.context,
   });
+  return {
+    type: "none",
+  };
 }
 
 export async function handleMessage(rawMessage: unknown) {
   const message = parse(MessageSchema, rawMessage);
+  const type = message.type;
 
-  if (message.type === "gesture") {
-    return handleGestureMessage(message);
+  if (type === "gesture") {
+    return await handleGestureMessage(message);
   }
 
-  if (message.type === "piemenuAction") {
-    return handlePiemenuActionMessage(message);
+  if (type === "piemenuAction") {
+    return await handlePiemenuActionMessage(message);
   }
+
+  throw new Error(`unexpected message type: ${type satisfies never}`);
 }
 
-export function buildGestureMessage({
-  directions,
-  startPoint,
-}: {
-  directions: Direction[];
-  startPoint: Point;
-}): GestureMessage {
-  return {
-    type: "gesture",
-    directions,
-    context: buildContentActionContext({ startPoint }),
-  };
-}
-
-export function buildPimenuActionMessage({
+export async function sendPimenuActionMessage({
   action,
   startPoint,
 }: {
   action: GestureActionWithoutPiemenu;
   startPoint: Point;
-}): PiemenuActionMessage {
-  return {
+}) {
+  const message = {
     type: "piemenuAction",
     action,
     context: buildContentActionContext({ startPoint }),
   };
+  const response = await browser.runtime.sendMessage(message);
+  return response as PiemenuActionResponse;
 }
 
 export async function sendGestureMessage({
@@ -146,8 +159,12 @@ export async function sendGestureMessage({
 }: {
   directions: Direction[];
   startPoint: Point;
-}): Promise<GestureResponse> {
-  const message = buildGestureMessage({ directions, startPoint });
+}) {
+  const message = {
+    type: "gesture",
+    directions,
+    context: buildContentActionContext({ startPoint }),
+  };
   const response = await browser.runtime.sendMessage(message);
   return response as GestureResponse;
 }

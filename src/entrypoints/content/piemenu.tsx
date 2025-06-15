@@ -1,7 +1,4 @@
-import type {
-  GestureActionWithoutPiemenu,
-  PiemenuMenu,
-} from "@/src/feature/action";
+import type { GestureAction, PiemenuMenu } from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { useCallback, useEffect, useState } from "react";
@@ -15,7 +12,7 @@ export const Piemenu = ({
   menu: PiemenuMenu[];
   center: Point;
   onClose: () => void;
-  onSelectAction: (action: GestureActionWithoutPiemenu) => void;
+  onSelectAction: (action: GestureAction) => void;
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
@@ -71,14 +68,18 @@ export const Piemenu = ({
 
     const handleClick = (e: MouseEvent) => {
       e.preventDefault();
+
+      if (e.button === 2) {
+        onClose();
+        return;
+      }
+
       if (e.button === 0 && highlightedIndex >= 0) {
+        onClose();
         const menuItem = menu[highlightedIndex];
         if (menuItem) {
           onSelectAction(menuItem.action);
         }
-        onClose();
-      } else if (e.button === 2) {
-        onClose();
       }
     };
 

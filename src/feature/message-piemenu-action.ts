@@ -1,7 +1,8 @@
 import { type InferOutput, literal, object } from "valibot";
 import {
-  type GestureActionWithoutPiemenu,
-  GestureActionWithoutPiemenuSchema,
+  type GestureAction,
+  GestureActionSchema,
+  type PiemenuMenu,
   callAction,
 } from "./action";
 import {
@@ -12,23 +13,35 @@ import type { Point } from "./direction";
 
 export const PiemenuActionMessageSchema = object({
   type: literal("piemenuAction"),
-  action: GestureActionWithoutPiemenuSchema,
+  action: GestureActionSchema,
   context: ContentActionContextSchema,
 });
 
 type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
 
-type PiemenuActionResponse = {
-  type: "none";
-};
+type PiemenuActionResponse =
+  | {
+      type: "piemenu";
+      piemenu: PiemenuMenu[];
+    }
+  | {
+      type: "none";
+    };
 
 export async function handlePiemenuActionMessage(
   message: PiemenuActionMessage,
 ): Promise<PiemenuActionResponse> {
-  await callAction({
+  const result = await callAction({
     gestureAction: message.action,
     contentContext: message.context,
   });
+  if (result) {
+    return {
+      type: "piemenu",
+      piemenu: result.piemenu,
+    };
+  }
+
   return {
     type: "none",
   };
@@ -38,7 +51,7 @@ export async function sendPimenuActionMessage({
   action,
   startPoint,
 }: {
-  action: GestureActionWithoutPiemenu;
+  action: GestureAction;
   startPoint: Point;
 }) {
   const message: PiemenuActionMessage = {

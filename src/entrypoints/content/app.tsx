@@ -1,7 +1,4 @@
-import type {
-  GestureActionWithoutPiemenu,
-  PiemenuMenu,
-} from "@/src/feature/action";
+import type { GestureAction, PiemenuMenu } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import { sendGestureMessage } from "@/src/feature/message-gesture";
 import { sendPimenuActionMessage } from "@/src/feature/message-piemenu-action";
@@ -88,14 +85,20 @@ export const App = () => {
     };
   }, [hasPoint, pimenuExists]);
 
-  const handleSelectAction = async (action: GestureActionWithoutPiemenu) => {
+  const handleSelectAction = async (action: GestureAction) => {
     if (piemenuData === null) {
       return;
     }
-    await sendPimenuActionMessage({
+    const response = await sendPimenuActionMessage({
       action,
       startPoint: piemenuData.center,
     });
+    if (response.type === "piemenu") {
+      setPiemenuData({
+        menu: response.piemenu,
+        center: piemenuData.center,
+      });
+    }
   };
 
   return (

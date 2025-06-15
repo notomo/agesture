@@ -7,6 +7,7 @@
 
 import {
   type InferOutput,
+  any,
   array,
   boolean,
   literal,
@@ -206,7 +207,7 @@ const MaximizeWindowActionSchema = object({
   }),
 });
 
-export const GestureActionWithoutPiemenuSchema = union([
+const GestureActionWithoutPiemenuSchema = union([
   OpenLinkActionSchema,
   OpenUrlActionSchema,
   MaximizeWindowActionSchema,
@@ -215,13 +216,25 @@ export const GestureActionWithoutPiemenuSchema = union([
   }),
 ]);
 
-export type GestureActionWithoutPiemenu = InferOutput<
-  typeof GestureActionWithoutPiemenuSchema
->;
-
 const PiemenuMenuSchema = object({
   label: string(),
-  action: GestureActionWithoutPiemenuSchema,
+  action: union([
+    GestureActionWithoutPiemenuSchema,
+    object({
+      name: literal("piemenu"),
+      args: object({
+        menus: array(
+          object({
+            label: string(),
+            action: object({
+              name: any(),
+              args: any(),
+            }),
+          }),
+        ),
+      }),
+    }),
+  ]),
 });
 export type PiemenuMenu = InferOutput<typeof PiemenuMenuSchema>;
 
@@ -272,7 +285,7 @@ export const GestureActionSchema = union([
   PiemenuActionSchema,
 ]);
 
-type GestureAction = InferOutput<typeof GestureActionSchema>;
+export type GestureAction = InferOutput<typeof GestureActionSchema>;
 
 type ActionName = InferOutput<typeof ActionNameSchema>;
 

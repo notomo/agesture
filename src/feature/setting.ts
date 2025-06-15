@@ -154,7 +154,8 @@ export const DEFAULT_SETTING: Setting = {
   ],
 };
 
-const settingItem = storage.defineItem<Setting>("local:gestureSetting", {
+// export to test only
+export const settingItem = storage.defineItem<Setting>("local:gestureSetting", {
   defaultValue: DEFAULT_SETTING,
 });
 

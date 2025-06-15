@@ -53,7 +53,7 @@ export const App = () => {
       const response = await sendGestureMessage({ directions, startPoint });
       if (response.type === "piemenu") {
         setPiemenu({
-          items: response.piemenu,
+          items: response.items,
           center: startPoint,
         });
       }

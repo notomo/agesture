@@ -23,7 +23,7 @@ type GestureMessage = InferOutput<typeof GestureMessageSchema>;
 type GestureResponse =
   | {
       type: "piemenu";
-      piemenu: PiemenuItem[];
+      items: PiemenuItem[];
     }
   | {
       type: "message";
@@ -60,7 +60,7 @@ export async function handleGestureMessage(
     if (result) {
       return {
         type: "piemenu",
-        piemenu: result.piemenu,
+        items: result.piemenu,
       };
     }
   }

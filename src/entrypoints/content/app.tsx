@@ -1,4 +1,4 @@
-import type { GestureAction, PiemenuMenu } from "@/src/feature/action";
+import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import { type Point, fromPoints } from "@/src/feature/direction";
 import { sendGestureMessage } from "@/src/feature/message-gesture";
 import { sendPimenuActionMessage } from "@/src/feature/message-piemenu-action";
@@ -8,8 +8,8 @@ import { Piemenu } from "./piemenu";
 
 export const App = () => {
   const [points, setPoints] = useState<Point[]>([]);
-  const [piemenuData, setPiemenuData] = useState<{
-    menu: PiemenuMenu[];
+  const [piemenu, setPiemenu] = useState<{
+    items: PiemenuItem[];
     center: Point;
   } | null>(null);
 
@@ -52,8 +52,8 @@ export const App = () => {
 
       const response = await sendGestureMessage({ directions, startPoint });
       if (response.type === "piemenu") {
-        setPiemenuData({
-          menu: response.piemenu,
+        setPiemenu({
+          items: response.piemenu,
           center: startPoint,
         });
       }
@@ -71,7 +71,7 @@ export const App = () => {
   }, [points]);
 
   const hasPoint = points.length > 0;
-  const pimenuExists = piemenuData !== null;
+  const pimenuExists = piemenu !== null;
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       if (!hasPoint && !pimenuExists) {
@@ -86,17 +86,17 @@ export const App = () => {
   }, [hasPoint, pimenuExists]);
 
   const handleSelectAction = async (action: GestureAction) => {
-    if (piemenuData === null) {
+    if (piemenu === null) {
       return;
     }
     const response = await sendPimenuActionMessage({
       action,
-      startPoint: piemenuData.center,
+      startPoint: piemenu.center,
     });
     if (response.type === "piemenu") {
-      setPiemenuData({
-        menu: response.piemenu,
-        center: piemenuData.center,
+      setPiemenu({
+        items: response.items,
+        center: piemenu.center,
       });
     }
   };
@@ -104,17 +104,17 @@ export const App = () => {
   return (
     <>
       <Canvas points={points} />
-      {piemenuData && (
+      {piemenu && (
         <Piemenu
-          menu={piemenuData.menu}
-          center={piemenuData.center}
+          items={piemenu.items}
+          center={piemenu.center}
           onClose={() => {
             // to prevent context menu
             setTimeout(() => {
-              setPiemenuData(null);
+              setPiemenu(null);
             });
           }}
-          onSelectAction={handleSelectAction}
+          onSelect={handleSelectAction}
         />
       )}
     </>

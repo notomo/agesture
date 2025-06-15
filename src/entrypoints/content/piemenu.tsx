@@ -1,25 +1,25 @@
-import type { GestureAction, PiemenuMenu } from "@/src/feature/action";
+import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { useCallback, useEffect, useState } from "react";
 
 export const Piemenu = ({
-  menu,
+  items,
   center,
   onClose,
-  onSelectAction,
+  onSelect,
 }: {
-  menu: PiemenuMenu[];
+  items: PiemenuItem[];
   center: Point;
   onClose: () => void;
-  onSelectAction: (action: GestureAction) => void;
+  onSelect: (action: GestureAction) => void;
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   const radius = 180;
 
   const getTextPosition = (index: number) => {
-    const angle = (index * 2 * Math.PI) / menu.length - Math.PI / 2;
+    const angle = (index * 2 * Math.PI) / items.length - Math.PI / 2;
     const textRadius = radius * 0.7; // 70% of the outer radius to move text closer to center
     return {
       x: center.x + Math.cos(angle) * textRadius,
@@ -29,7 +29,7 @@ export const Piemenu = ({
 
   const getHighlightedIndex = useCallback(
     (mousePos: Point) => {
-      if (menu.length === 0) return -1;
+      if (items.length === 0) return -1;
 
       const dx = mousePos.x - center.x;
       const dy = mousePos.y - center.y;
@@ -41,8 +41,8 @@ export const Piemenu = ({
       let closestIndex = -1;
       let smallestAngleDiff = Number.POSITIVE_INFINITY;
 
-      for (let i = 0; i < menu.length; i++) {
-        const itemAngle = (i * 2 * Math.PI) / menu.length - Math.PI / 2;
+      for (let i = 0; i < items.length; i++) {
+        const itemAngle = (i * 2 * Math.PI) / items.length - Math.PI / 2;
         let angleDiff = Math.abs(mouseAngle - itemAngle);
 
         if (angleDiff > Math.PI) {
@@ -57,7 +57,7 @@ export const Piemenu = ({
 
       return closestIndex;
     },
-    [menu.length, center.x, center.y],
+    [items.length, center.x, center.y],
   );
 
   useEffect(() => {
@@ -74,12 +74,10 @@ export const Piemenu = ({
         return;
       }
 
-      if (e.button === 0 && highlightedIndex >= 0) {
+      const item = items[highlightedIndex];
+      if (e.button === 0 && item) {
         onClose();
-        const menuItem = menu[highlightedIndex];
-        if (menuItem) {
-          onSelectAction(menuItem.action);
-        }
+        onSelect(item.action);
       }
     };
 
@@ -98,10 +96,10 @@ export const Piemenu = ({
       document.removeEventListener("mouseup", handleClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [menu, highlightedIndex, onClose, onSelectAction, getHighlightedIndex]);
+  }, [items, highlightedIndex, onClose, onSelect, getHighlightedIndex]);
 
   const createSectorPath = (index: number) => {
-    const angleStep = (2 * Math.PI) / menu.length;
+    const angleStep = (2 * Math.PI) / items.length;
     const startAngle = index * angleStep - Math.PI / 2 - angleStep / 2;
     const endAngle = startAngle + angleStep;
     const outerRadius = radius + 40;
@@ -145,7 +143,7 @@ export const Piemenu = ({
           role="img"
           aria-label="Piemenu selection areas"
         >
-          {menu.map((item, index) => {
+          {items.map((item, index) => {
             const isHighlighted = index === highlightedIndex;
             return (
               <path
@@ -161,15 +159,15 @@ export const Piemenu = ({
             );
           })}
         </svg>
-        {menu.map((item, index) => {
-          const textPos = getTextPosition(index);
+        {items.map((item, index) => {
+          const position = getTextPosition(index);
           return (
             <div
               key={item.label}
               className="absolute w-30 h-8 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
               style={{
-                left: textPos.x,
-                top: textPos.y,
+                left: position.x,
+                top: position.y,
               }}
             >
               <span

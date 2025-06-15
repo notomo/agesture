@@ -1,5 +1,5 @@
 import { type InferOutput, array, literal, object } from "valibot";
-import { type PiemenuMenu, callAction } from "./action";
+import { type PiemenuItem, callAction } from "./action";
 import {
   ContentActionContextSchema,
   buildContentActionContext,
@@ -23,7 +23,7 @@ type GestureMessage = InferOutput<typeof GestureMessageSchema>;
 type GestureResponse =
   | {
       type: "piemenu";
-      piemenu: PiemenuMenu[];
+      piemenu: PiemenuItem[];
     }
   | {
       type: "message";

@@ -2,7 +2,7 @@ import { type InferOutput, literal, object } from "valibot";
 import {
   type GestureAction,
   GestureActionSchema,
-  type PiemenuMenu,
+  type PiemenuItem,
   callAction,
 } from "./action";
 import {
@@ -22,7 +22,7 @@ type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
 type PiemenuActionResponse =
   | {
       type: "piemenu";
-      piemenu: PiemenuMenu[];
+      items: PiemenuItem[];
     }
   | {
       type: "none";
@@ -38,7 +38,7 @@ export async function handlePiemenuActionMessage(
   if (result) {
     return {
       type: "piemenu",
-      piemenu: result.piemenu,
+      items: result.piemenu,
     };
   }
 

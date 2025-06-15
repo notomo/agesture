@@ -216,7 +216,7 @@ const GestureActionWithoutPiemenuSchema = union([
   }),
 ]);
 
-const PiemenuMenuSchema = object({
+const PiemenuItemSchema = object({
   label: string(),
   action: union([
     GestureActionWithoutPiemenuSchema,
@@ -236,12 +236,12 @@ const PiemenuMenuSchema = object({
     }),
   ]),
 });
-export type PiemenuMenu = InferOutput<typeof PiemenuMenuSchema>;
+export type PiemenuItem = InferOutput<typeof PiemenuItemSchema>;
 
 const PiemenuActionSchema = object({
   name: literal("piemenu"),
   args: object({
-    menus: array(PiemenuMenuSchema),
+    menus: array(PiemenuItemSchema),
   }),
 });
 type PiemenuActionArgs = InferOutput<typeof PiemenuActionSchema>["args"];

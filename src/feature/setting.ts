@@ -1,6 +1,6 @@
 import {
-  type InferOutput,
   array,
+  type InferOutput,
   object,
   parseJson,
   pipe,

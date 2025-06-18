@@ -39,7 +39,10 @@ function detectDirection(
 export function fromPoints({
   points,
   minDistance,
-}: { points: Point[]; minDistance: number }) {
+}: {
+  points: Point[];
+  minDistance: number;
+}) {
   let previous = points.at(0);
   if (!previous) {
     return [];

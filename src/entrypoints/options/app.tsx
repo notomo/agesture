@@ -1,10 +1,10 @@
+import { useEffect, useId, useState } from "react";
 import {
   DEFAULT_SETTING,
   getSetting,
   importSetting,
 } from "@/src/feature/setting";
 import { cn } from "@/src/lib/tailwind";
-import { useEffect, useState } from "react";
 
 export function App() {
   const [settingJson, setSettingJson] = useSetting();
@@ -21,6 +21,8 @@ export function App() {
     });
   };
 
+  const id = useId();
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Gesture Setting</h1>
@@ -30,7 +32,7 @@ export function App() {
           Setting JSON
         </label>
         <textarea
-          id="setting-json"
+          id={`setting-json-${id}`}
           className="w-full h-64 p-2 border rounded font-mono"
           value={settingJson}
           onChange={(e) => setSettingJson(e.target.value)}

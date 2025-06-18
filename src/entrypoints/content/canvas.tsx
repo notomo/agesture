@@ -1,11 +1,7 @@
-import type { Point } from "@/src/feature/direction";
 import { useEffect, useRef } from "react";
+import type { Point } from "@/src/feature/direction";
 
-export const Canvas = ({
-  points,
-}: {
-  points: Point[];
-}) => {
+export const Canvas = ({ points }: { points: Point[] }) => {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

@@ -6,10 +6,10 @@
  */
 
 import {
-  type InferOutput,
   any,
   array,
   boolean,
+  type InferOutput,
   literal,
   object,
   optional,

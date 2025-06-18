@@ -1,8 +1,8 @@
 import { parse, union } from "valibot";
 import { GestureMessageSchema, handleGestureMessage } from "./message-gesture";
 import {
-  PiemenuActionMessageSchema,
   handlePiemenuActionMessage,
+  PiemenuActionMessageSchema,
 } from "./message-piemenu-action";
 
 const MessageSchema = union([GestureMessageSchema, PiemenuActionMessageSchema]);

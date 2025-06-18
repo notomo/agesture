@@ -1,8 +1,8 @@
+import { useEffect, useState } from "react";
 import type { GestureAction, PiemenuItem } from "@/src/feature/action";
-import { type Point, fromPoints } from "@/src/feature/direction";
+import { fromPoints, type Point } from "@/src/feature/direction";
 import { sendGestureMessage } from "@/src/feature/message-gesture";
 import { sendPimenuActionMessage } from "@/src/feature/message-piemenu-action";
-import { useEffect, useState } from "react";
 import { Canvas } from "./canvas";
 import { Piemenu } from "./piemenu";
 

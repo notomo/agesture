@@ -114,18 +114,25 @@ async function maximizeWindowAction({
     const tab = await getCurrentTab();
     await browser.windows.update(tab.windowId, {
       state: "maximized",
+      focused: true,
     });
     return;
   }
 
   const allWindows = await browser.windows.getAll();
+  const currentTab = await getCurrentTab();
   for (const window of allWindows) {
     if (window.id) {
       await browser.windows.update(window.id, {
         state: "maximized",
+        focused: true,
       });
     }
   }
+
+  await browser.windows.update(currentTab.windowId, {
+    focused: true,
+  });
 }
 
 async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {

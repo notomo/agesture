@@ -92,8 +92,13 @@ export const DEFAULT_SETTING: Setting = {
               },
             },
             {
-              label: "History",
-              action: { name: "openUrl", args: { url: "chrome://history/" } },
+              label: "Maximize",
+              action: {
+                name: "maximizeWindow",
+                args: {
+                  all: true,
+                },
+              },
             },
             {
               label: "Bookmarks",
@@ -103,13 +108,8 @@ export const DEFAULT_SETTING: Setting = {
               },
             },
             {
-              label: "Maximize",
-              action: {
-                name: "maximizeWindow",
-                args: {
-                  all: true,
-                },
-              },
+              label: "History",
+              action: { name: "openUrl", args: { url: "chrome://history/" } },
             },
           ],
         },

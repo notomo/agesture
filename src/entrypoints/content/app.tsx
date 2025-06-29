@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import { fromPoints, type Point } from "@/src/feature/direction";
 import { sendGestureMessage } from "@/src/feature/message-gesture";
@@ -12,40 +12,59 @@ export const App = () => {
     items: PiemenuItem[];
     center: Point;
   } | null>(null);
+  const isDraggingRef = useRef(false);
 
-  useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
+  const addPoint = useCallback((point: Point) => {
+    setPoints((prev) => [...prev, point]);
+  }, []);
+
+  const clearPoints = useCallback(() => {
+    setPoints([]);
+    isDraggingRef.current = false;
+  }, []);
+
+  const handleMouseDown = useCallback(
+    (e: MouseEvent) => {
       if (e.button !== 2) {
         return;
       }
-      setPoints([...points, { x: e.clientX, y: e.clientY }]);
+      isDraggingRef.current = true;
+      addPoint({ x: e.clientX, y: e.clientY });
       e.preventDefault(); // to prevent unselecting text
-    };
+    },
+    [addPoint],
+  );
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.buttons !== 2) {
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (e.buttons !== 2 || !isDraggingRef.current) {
         return;
       }
-      setPoints([...points, { x: e.clientX, y: e.clientY }]);
-    };
+      addPoint({ x: e.clientX, y: e.clientY });
+    },
+    [addPoint],
+  );
 
-    const handleMouseUp = async (e: MouseEvent) => {
-      if (e.button !== 2) {
+  const handleMouseUp = useCallback(
+    async (e: MouseEvent) => {
+      if (e.button !== 2 || !isDraggingRef.current) {
         return;
       }
 
-      const directions = fromPoints({ points, minDistance: 20 });
+      const currentPoints = points;
+      const directions = fromPoints({ points: currentPoints, minDistance: 20 });
+
       if (directions.length === 0) {
-        setPoints([]);
+        clearPoints();
         return;
       }
 
       // to prevent context menu
       setTimeout(() => {
-        setPoints([]);
+        clearPoints();
       });
 
-      const startPoint = points.at(0);
+      const startPoint = currentPoints.at(0);
       if (!startPoint) {
         throw new Error("startPoint should exist when gesture is triggered");
       }
@@ -57,8 +76,11 @@ export const App = () => {
           center: startPoint,
         });
       }
-    };
+    },
+    [points, clearPoints],
+  );
 
+  useEffect(() => {
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
@@ -68,7 +90,7 @@ export const App = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [points]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp]);
 
   const hasPoint = points.length > 0;
   const pimenuExists = piemenu !== null;
@@ -85,21 +107,24 @@ export const App = () => {
     };
   }, [hasPoint, pimenuExists]);
 
-  const handleSelectAction = async (action: GestureAction) => {
-    if (piemenu === null) {
-      return;
-    }
-    const response = await sendPimenuActionMessage({
-      action,
-      startPoint: piemenu.center,
-    });
-    if (response.type === "piemenu") {
-      setPiemenu({
-        items: response.items,
-        center: piemenu.center,
+  const handleSelectAction = useCallback(
+    async (action: GestureAction) => {
+      if (piemenu === null) {
+        return;
+      }
+      const response = await sendPimenuActionMessage({
+        action,
+        startPoint: piemenu.center,
       });
-    }
-  };
+      if (response.type === "piemenu") {
+        setPiemenu({
+          items: response.items,
+          center: piemenu.center,
+        });
+      }
+    },
+    [piemenu],
+  );
 
   return (
     <>

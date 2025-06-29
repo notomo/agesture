@@ -163,6 +163,9 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
       windowId: nextWindow.id,
       index: -1, // Move to end of tab list
     });
+    await browser.tabs.update(tab.id, {
+      active: true,
+    });
   }
 }
 

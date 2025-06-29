@@ -10,7 +10,7 @@
     "zip": "wxt zip",
     "postinstall": "wxt prepare",
     "typecheck": "tsc --noEmit",
-    "format": "biome check --write --formatter-enabled=true --organize-imports-enabled=true --unsafe",
+    "format": "biome check --write --formatter-enabled=true --assist-enabled=true --unsafe",
     "check": "biome check .",
     "test": "vitest run",
     "all": "npm run format && npm run check && npm run typecheck && npm run test",

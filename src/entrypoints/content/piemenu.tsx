@@ -152,8 +152,8 @@ export const Piemenu = ({
                 className={cn(
                   "transition-all duration-150",
                   isHighlighted
-                    ? "fill-blue-500/80 stroke-blue-500/90 stroke-2"
-                    : "fill-gray-600/80 stroke-gray-600/90 stroke-1",
+                    ? "fill-blue-500 stroke-blue-500 stroke-2"
+                    : "fill-gray-600 stroke-gray-600 stroke-1",
                 )}
               />
             );

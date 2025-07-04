@@ -1,54 +1,66 @@
-# Claude Co-Author Guidelines
+# CLAUDE.md
 
-## Coding Rules
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Avoid using classes. Prefer pure functions whenever possible
-- Implement Test-Driven Development (TDD)
-- Write comments in English only, not in Japanese
-- Place test files in the same directory as the implementation files: `{name}.spec.(ts|tsx)`
-- Execute only one task per request
-- Run `npm run for_agent` before committing and resolve any errors
-- Always request human confirmation before completing a task
-- Avoid using mocks in tests
-- Avoid using `let` declarations whenever possible
-- Never using try-catch blocks
-- Never using `any` type
-- Never ignore TypeScript type errors
+## Project Overview
 
-## When making git commits, please follow these practices:
+agesture is a browser extension for mouse gestures built with:
+- **WXT Framework**: Modern web extension framework with TypeScript support
+- **React**: UI components with React 19 and shadow DOM isolation
+- **Valibot**: Runtime schema validation and type safety
+- **Tailwind CSS**: Utility-first CSS framework
+- **Vitest**: Testing framework
+- **Biome**: Code formatting and linting
 
-- Always add `Claude` as a Co-Author to your commits
-- No summary is required after git commit
-- Use semantic commit messages
-- Prioritize Japanese conversation in chat only
-- Do not use Japanese in files or commit messages
+## Architecture
 
-### How to add Claude as Co-Author
+### Core Components
 
-Add the following line to your commit message:
+- **Background Script** (`src/entrypoints/background/`): Message handler for gesture actions
+- **Content Script** (`src/entrypoints/content/`): Gesture detection, canvas rendering, and piemenu UI
+- **Feature Modules** (`src/feature/`): Core business logic
+  - `action.ts`: Action definitions and execution (bookmark, navigation, search, etc.)
+  - `direction.ts`: Mouse gesture direction detection from point sequences
+  - `message.ts`: Message routing between content and background scripts
+  - `setting.ts`: Configuration management
 
+### Message Flow
+
+1. Content script detects gestures and renders UI
+2. Messages sent to background script via `handleMessage()`
+3. Background script executes actions using browser APIs
+4. Results returned to content script for UI updates
+
+### Action System
+
+Actions are defined in `src/feature/action.ts` with:
+- Schema validation using Valibot
+- Type-safe execution with `ActionContext`
+- Support for piemenu hierarchical actions
+- Browser API integration (tabs, bookmarks, search, etc.)
+
+## Development Commands
+
+```bash
+# Start development server
+npm run dev
+
+# Build extension
+npm run build
+
+# Format, lint, typecheck, and test (run before commits)
+npm run check_all
+
+# Individual commands
+npm run format     # Format code with Biome
+npm run check      # Lint with Biome
+npm run typecheck  # TypeScript type checking
+npm run test       # Run tests with Vitest
 ```
-Co-authored-by: Claude <noreply@anthropic.com>
-```
 
-### Semantic Commit Message Format
+## Testing
 
-Structure your commit messages following semantic conventions:
-
-```
-<type>(<scope>): <short summary>
-
-Co-authored-by: Claude <claude@anthropic.com>
-```
-
-Where `<type>` is one of:
-- feat: A new feature
-- fix: A bug fix
-- docs: Documentation changes
-- style: Changes that don't affect code functionality (formatting, etc.)
-- refactor: Code change that neither fixes a bug nor adds a feature
-- perf: Code change that improves performance
-- test: Adding or modifying tests
-- chore: Changes to the build process or auxiliary tools
-
-Remember that no additional summary is needed after completing the commit.
+- Test files are co-located with implementation: `{name}.spec.(ts|tsx)`
+- Use Vitest for testing
+- Avoid mocks when possible
+- Test both individual functions and integration scenarios

@@ -13,8 +13,7 @@
     "format": "biome check --write --formatter-enabled=true --assist-enabled=true --unsafe",
     "check": "biome check .",
     "test": "vitest run",
-    "all": "npm run format && npm run check && npm run typecheck && npm run test",
-    "for_agent": "bash ./script/run.sh format && bash ./script/run.sh check && bash ./script/run.sh typecheck && bash ./script/run.sh test",
+    "check_all": "npm run format && npm run check && npm run typecheck && npm run test",
     "deploy_for_local": "npm run build && mkdir -p $AGESTURE_LOCAL && cp -rf ./.output/chrome-mv3/* $AGESTURE_LOCAL"
   },
   "devDependencies": {

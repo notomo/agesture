@@ -38,6 +38,9 @@
           "level": "warn",
           "fix": "unsafe"
         }
+      },
+      "nursery": {
+        "useSortedClasses": "warn"
       }
     }
   },

@@ -135,10 +135,10 @@ export const Piemenu = ({
   };
 
   return (
-    <div className="fixed inset-0 z-9999 pointer-events-none">
-      <div className="pointer-events-auto w-full h-full">
+    <div className="pointer-events-none fixed inset-0 z-9999">
+      <div className="pointer-events-auto h-full w-full">
         <svg
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 h-full w-full"
           style={{ pointerEvents: "none" }}
           role="img"
           aria-label="Piemenu selection areas"
@@ -152,8 +152,8 @@ export const Piemenu = ({
                 className={cn(
                   "transition-all duration-150",
                   isHighlighted
-                    ? "fill-blue-500 stroke-blue-500 stroke-2"
-                    : "fill-gray-600 stroke-gray-600 stroke-1",
+                    ? "fill-blue-500 stroke-2 stroke-blue-500"
+                    : "fill-gray-600 stroke-1 stroke-gray-600",
                 )}
               />
             );
@@ -164,7 +164,7 @@ export const Piemenu = ({
           return (
             <div
               key={item.label}
-              className="absolute w-30 h-8 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
+              className="-translate-x-1/2 -translate-y-1/2 absolute flex h-8 w-30 items-center justify-center transition-all duration-150"
               style={{
                 left: position.x,
                 top: position.y,
@@ -172,7 +172,7 @@ export const Piemenu = ({
             >
               <span
                 className={cn(
-                  "font-sans font-semibold text-white text-xl select-none transition-all duration-150 px-3 py-1 rounded-md",
+                  "select-none rounded-md px-3 py-1 font-sans font-semibold text-white text-xl transition-all duration-150",
                 )}
               >
                 {item.label}

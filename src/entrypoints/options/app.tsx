@@ -25,15 +25,15 @@ export function App() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Gesture Setting</h1>
+      <h1 className="mb-4 font-bold text-2xl">Gesture Setting</h1>
 
       <div className="mb-4">
-        <label htmlFor="setting-json" className="block font-medium mb-2">
+        <label htmlFor="setting-json" className="mb-2 block font-medium">
           Setting JSON
         </label>
         <textarea
           id={`setting-json-${id}`}
-          className="w-full h-64 p-2 border rounded font-mono"
+          className="h-64 w-full rounded border p-2 font-mono"
           value={settingJson}
           onChange={(e) => setSettingJson(e.target.value)}
           placeholder={JSON.stringify(DEFAULT_SETTING)}
@@ -43,7 +43,7 @@ export function App() {
       {saveResult.message && (
         <div
           className={cn(
-            "p-2 mb-4 rounded whitespace-pre-wrap",
+            "mb-4 whitespace-pre-wrap rounded p-2",
             saveResult.isError
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700",
@@ -57,14 +57,14 @@ export function App() {
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
           Save
         </button>
       </div>
 
-      <div className="mt-8 p-4 bg-gray-100 rounded">
-        <h2 className="text-xl font-bold mb-2">Example</h2>
+      <div className="mt-8 rounded bg-gray-100 p-4">
+        <h2 className="mb-2 font-bold text-xl">Example</h2>
         <pre className="font-mono text-sm">
           {JSON.stringify(DEFAULT_SETTING, null, 2)}
         </pre>

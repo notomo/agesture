@@ -3,6 +3,55 @@ import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 
+const calculateAngleStep = (itemCount: number): number => {
+  return (2 * Math.PI) / itemCount;
+};
+
+const calculateSectorAngles = (
+  index: number,
+  itemCount: number,
+): { startAngle: number; endAngle: number } => {
+  const angleStep = calculateAngleStep(itemCount);
+  const startAngle = index * angleStep - Math.PI / 2 - angleStep / 2;
+  const endAngle = startAngle + angleStep;
+  return { startAngle, endAngle };
+};
+
+const calculateItemAngle = (index: number, itemCount: number): number => {
+  return (index * 2 * Math.PI) / itemCount - Math.PI / 2;
+};
+
+const calculateDistance = (point1: Point, point2: Point): number => {
+  const dx = point1.x - point2.x;
+  const dy = point1.y - point2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+const calculateMouseAngle = (mousePos: Point, center: Point): number => {
+  const dx = mousePos.x - center.x;
+  const dy = mousePos.y - center.y;
+  return Math.atan2(dy, dx);
+};
+
+const calculateAngleDifference = (angle1: number, angle2: number): number => {
+  let angleDiff = Math.abs(angle1 - angle2);
+  if (angleDiff > Math.PI) {
+    angleDiff = 2 * Math.PI - angleDiff;
+  }
+  return angleDiff;
+};
+
+const calculatePointOnCircle = (
+  center: Point,
+  radius: number,
+  angle: number,
+): Point => {
+  return {
+    x: center.x + Math.cos(angle) * radius,
+    y: center.y + Math.sin(angle) * radius,
+  };
+};
+
 const PiemenuSector = ({
   index,
   center,
@@ -17,28 +66,15 @@ const PiemenuSector = ({
   isHighlighted: boolean;
 }) => {
   const createSectorPath = () => {
-    const angleStep = (2 * Math.PI) / itemCount;
-    const startAngle = index * angleStep - Math.PI / 2 - angleStep / 2;
-    const endAngle = startAngle + angleStep;
+    const angleStep = calculateAngleStep(itemCount);
+    const { startAngle, endAngle } = calculateSectorAngles(index, itemCount);
     const outerRadius = radius + 40;
     const innerRadius = 35;
 
-    const startOuter = {
-      x: center.x + Math.cos(startAngle) * outerRadius,
-      y: center.y + Math.sin(startAngle) * outerRadius,
-    };
-    const endOuter = {
-      x: center.x + Math.cos(endAngle) * outerRadius,
-      y: center.y + Math.sin(endAngle) * outerRadius,
-    };
-    const startInner = {
-      x: center.x + Math.cos(startAngle) * innerRadius,
-      y: center.y + Math.sin(startAngle) * innerRadius,
-    };
-    const endInner = {
-      x: center.x + Math.cos(endAngle) * innerRadius,
-      y: center.y + Math.sin(endAngle) * innerRadius,
-    };
+    const startOuter = calculatePointOnCircle(center, outerRadius, startAngle);
+    const endOuter = calculatePointOnCircle(center, outerRadius, endAngle);
+    const startInner = calculatePointOnCircle(center, innerRadius, startAngle);
+    const endInner = calculatePointOnCircle(center, innerRadius, endAngle);
 
     const largeArcFlag = angleStep > Math.PI ? 1 : 0;
 
@@ -78,16 +114,9 @@ const PiemenuLabel = ({
   radius: number;
   itemCount: number;
 }) => {
-  const getTextPosition = () => {
-    const angle = (index * 2 * Math.PI) / itemCount - Math.PI / 2;
-    const textRadius = radius * 0.7;
-    return {
-      x: center.x + Math.cos(angle) * textRadius,
-      y: center.y + Math.sin(angle) * textRadius,
-    };
-  };
-
-  const position = getTextPosition();
+  const angle = calculateItemAngle(index, itemCount);
+  const textRadius = radius * 0.7;
+  const position = calculatePointOnCircle(center, textRadius, angle);
 
   return (
     <div
@@ -126,23 +155,16 @@ export const Piemenu = ({
     (mousePos: Point) => {
       if (items.length === 0) return -1;
 
-      const dx = mousePos.x - center.x;
-      const dy = mousePos.y - center.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
+      const distance = calculateDistance(mousePos, center);
       if (distance < 35) return -1;
 
-      const mouseAngle = Math.atan2(dy, dx);
+      const mouseAngle = calculateMouseAngle(mousePos, center);
       let closestIndex = -1;
       let smallestAngleDiff = Number.POSITIVE_INFINITY;
 
       for (let i = 0; i < items.length; i++) {
-        const itemAngle = (i * 2 * Math.PI) / items.length - Math.PI / 2;
-        let angleDiff = Math.abs(mouseAngle - itemAngle);
-
-        if (angleDiff > Math.PI) {
-          angleDiff = 2 * Math.PI - angleDiff;
-        }
+        const itemAngle = calculateItemAngle(i, items.length);
+        const angleDiff = calculateAngleDifference(mouseAngle, itemAngle);
 
         if (angleDiff < smallestAngleDiff) {
           smallestAngleDiff = angleDiff;
@@ -152,7 +174,7 @@ export const Piemenu = ({
 
       return closestIndex;
     },
-    [items.length, center.x, center.y],
+    [items.length, center.x, center.y, center],
   );
 
   useEffect(() => {

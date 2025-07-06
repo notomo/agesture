@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
@@ -50,6 +50,34 @@ const calculatePointOnCircle = (
     x: center.x + Math.cos(angle) * radius,
     y: center.y + Math.sin(angle) * radius,
   };
+};
+
+const getHighlightedIndex = (
+  mousePos: Point,
+  center: Point,
+  itemCount: number,
+): number => {
+  if (itemCount === 0) {
+    return -1;
+  }
+
+  const distance = calculateDistance(mousePos, center);
+  if (distance < 35) {
+    return -1;
+  }
+
+  const mouseAngle = calculateMouseAngle(mousePos, center);
+  const itemsWithAngles = Array.from({ length: itemCount }, (_, i) => ({
+    index: i,
+    angleDiff: calculateAngleDifference(
+      mouseAngle,
+      calculateItemAngle(i, itemCount),
+    ),
+  }));
+  const closestItem = itemsWithAngles.reduce((min, item) =>
+    item.angleDiff < min.angleDiff ? item : min,
+  );
+  return closestItem.index;
 };
 
 const PiemenuSector = ({
@@ -151,36 +179,10 @@ export const Piemenu = ({
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const radius = 180;
 
-  const getHighlightedIndex = useCallback(
-    (mousePos: Point) => {
-      if (items.length === 0) return -1;
-
-      const distance = calculateDistance(mousePos, center);
-      if (distance < 35) return -1;
-
-      const mouseAngle = calculateMouseAngle(mousePos, center);
-      let closestIndex = -1;
-      let smallestAngleDiff = Number.POSITIVE_INFINITY;
-
-      for (let i = 0; i < items.length; i++) {
-        const itemAngle = calculateItemAngle(i, items.length);
-        const angleDiff = calculateAngleDifference(mouseAngle, itemAngle);
-
-        if (angleDiff < smallestAngleDiff) {
-          smallestAngleDiff = angleDiff;
-          closestIndex = i;
-        }
-      }
-
-      return closestIndex;
-    },
-    [items.length, center.x, center.y, center],
-  );
-
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const pos = { x: e.clientX, y: e.clientY };
-      setHighlightedIndex(getHighlightedIndex(pos));
+      setHighlightedIndex(getHighlightedIndex(pos, center, items.length));
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -213,7 +215,7 @@ export const Piemenu = ({
       document.removeEventListener("mouseup", handleClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [items, highlightedIndex, onClose, onSelect, getHighlightedIndex]);
+  }, [items, highlightedIndex, onClose, onSelect, center]);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-9999">

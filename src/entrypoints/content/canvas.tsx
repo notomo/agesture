@@ -51,15 +51,11 @@ const getCanvasContext = (canvas: HTMLCanvasElement) => {
     context.stroke();
   };
 
-  const clear = () => {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  return { draw, clear };
+  return { draw };
 };
 
 export const Canvas = ({ points }: { points: Point[] }) => {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const elementRef = useRef<HTMLCanvasElement>(null);
   const lastCountRef = useRef(0);
 
   const drawIncremental = useCallback(() => {
@@ -68,23 +64,16 @@ export const Canvas = ({ points }: { points: Point[] }) => {
       return;
     }
 
-    const canvas = ref.current;
+    const canvas = elementRef.current;
     if (!canvas) {
       return;
     }
 
-    const { draw, clear } = getCanvasContext(canvas);
-
     const lastCount = lastCountRef.current;
     lastCountRef.current = count;
 
-    if (count > lastCount) {
-      draw(points.slice(lastCount - 1));
-      return;
-    }
-
-    clear();
-    draw(points);
+    const { draw } = getCanvasContext(canvas);
+    draw(points.slice(lastCount - 1));
   }, [points]);
 
   useAnimation(drawIncremental);
@@ -95,7 +84,7 @@ export const Canvas = ({ points }: { points: Point[] }) => {
 
   return (
     <canvas
-      ref={ref}
+      ref={elementRef}
       className="pointer-events-none fixed inset-0 z-[9999] h-screen w-screen transform-gpu will-change-contents"
     />
   );

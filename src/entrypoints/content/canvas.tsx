@@ -1,9 +1,26 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Point } from "@/src/feature/direction";
 
+const useAnimation = (callback: () => void) => {
+  const ref = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const cancel = () => {
+      if (!ref.current) {
+        return;
+      }
+      cancelAnimationFrame(ref.current);
+    };
+
+    cancel();
+    ref.current = requestAnimationFrame(callback);
+
+    return cancel;
+  }, [callback]);
+};
+
 export const Canvas = ({ points }: { points: Point[] }) => {
   const ref = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number | undefined>(undefined);
   const lastPointCountRef = useRef(0);
 
   const initializeCanvas = useCallback(() => {
@@ -93,21 +110,9 @@ export const Canvas = ({ points }: { points: Point[] }) => {
     }
 
     lastPointCountRef.current = currentPointCount;
-    rafRef.current = undefined;
   }, [points, initializeCanvas]);
 
-  useEffect(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
-    rafRef.current = requestAnimationFrame(drawIncremental);
-
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [drawIncremental]);
+  useAnimation(drawIncremental);
 
   if (points.length === 0) {
     return null;

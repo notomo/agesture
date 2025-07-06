@@ -86,17 +86,7 @@ export const Canvas = ({ points }: { points: Point[] }) => {
   return (
     <canvas
       ref={ref}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        pointerEvents: "none",
-        zIndex: 9999,
-        willChange: "contents",
-        transform: "translateZ(0)",
-      }}
+      className="pointer-events-none fixed inset-0 z-[9999] h-screen w-screen transform-gpu will-change-contents"
     />
   );
 };

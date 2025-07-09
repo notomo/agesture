@@ -169,6 +169,16 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
   }
 }
 
+async function fullscreenVideoAction({ getCurrentTab }: ActionContext) {
+  const tab = await getCurrentTab();
+  await browser.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => {
+      document.querySelector("video")?.requestFullscreen();
+    },
+  });
+}
+
 async function doNothingAction(_: ActionContext) {
   // Intentionally does nothing
 }
@@ -184,6 +194,7 @@ const NoArgsActionNameSchema = union([
   literal("search"),
   literal("closeOtherTabs"),
   literal("moveTabToNextWindow"),
+  literal("fullscreenVideo"),
   literal("doNothing"),
 ]);
 const ActionNameSchema = union([
@@ -311,6 +322,7 @@ const actions = {
   closeOtherTabs: closeOtherTabsAction,
   maximizeWindow: maximizeWindowAction,
   moveTabToNextWindow: moveTabToNextWindowAction,
+  fullscreenVideo: fullscreenVideoAction,
   doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,

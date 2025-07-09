@@ -101,6 +101,12 @@ export const DEFAULT_SETTING: Setting = {
               },
             },
             {
+              label: "Fullscreen",
+              action: {
+                name: "fullscreenVideo",
+              },
+            },
+            {
               label: "Bookmarks",
               action: {
                 name: "openUrl",

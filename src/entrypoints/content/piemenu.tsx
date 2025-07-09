@@ -122,8 +122,8 @@ const PiemenuSector = ({
       className={cn(
         "transition-all duration-150",
         isHighlighted
-          ? "fill-blue-500 stroke-2 stroke-blue-500"
-          : "fill-gray-600 stroke-1 stroke-gray-600",
+          ? "fill-blue-500 stroke-1 stroke-blue-400"
+          : "fill-gray-600 stroke-1 stroke-gray-500",
       )}
     />
   );

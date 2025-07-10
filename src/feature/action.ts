@@ -237,25 +237,27 @@ const GestureActionWithoutPiemenuSchema = union([
   }),
 ]);
 
+const PiemenuItemActionSchema = union([
+  GestureActionWithoutPiemenuSchema,
+  object({
+    name: literal("piemenu"),
+    args: object({
+      menus: array(
+        object({
+          label: string(),
+          action: object({
+            name: any(),
+            args: any(),
+          }),
+        }),
+      ),
+    }),
+  }),
+]);
+
 const PiemenuItemSchema = object({
   label: string(),
-  action: union([
-    GestureActionWithoutPiemenuSchema,
-    object({
-      name: literal("piemenu"),
-      args: object({
-        menus: array(
-          object({
-            label: string(),
-            action: object({
-              name: any(),
-              args: any(),
-            }),
-          }),
-        ),
-      }),
-    }),
-  ]),
+  action: union([PiemenuItemActionSchema, array(PiemenuItemActionSchema)]),
 });
 export type PiemenuItem = InferOutput<typeof PiemenuItemSchema>;
 

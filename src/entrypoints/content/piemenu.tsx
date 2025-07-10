@@ -174,7 +174,7 @@ export const Piemenu = ({
   items: PiemenuItem[];
   center: Point;
   onClose: () => void;
-  onSelect: (action: GestureAction) => void;
+  onSelect: (action: GestureAction | GestureAction[]) => void;
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const radius = 180;

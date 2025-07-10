@@ -108,10 +108,11 @@ export const App = () => {
   }, [hasPoint, pimenuExists]);
 
   const handleSelectAction = useCallback(
-    async (action: GestureAction) => {
+    async (action: GestureAction | GestureAction[]) => {
       if (piemenu === null) {
         return;
       }
+
       const response = await sendPimenuActionMessage({
         action,
         startPoint: piemenu.center,

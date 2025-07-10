@@ -1,6 +1,6 @@
 import { array, type InferOutput, literal, object, union } from "valibot";
 import {
-  callAction,
+  callActions,
   type GestureAction,
   GestureActionSchema,
   type PiemenuItem,
@@ -36,21 +36,15 @@ type PiemenuActionResponse =
 export async function handlePiemenuActionMessage(
   message: PiemenuActionMessage,
 ): Promise<PiemenuActionResponse> {
-  const actions = Array.isArray(message.action)
-    ? message.action
-    : [message.action];
-
-  for (const action of actions) {
-    const result = await callAction({
-      gestureAction: action,
-      contentContext: message.context,
-    });
-    if (result) {
-      return {
-        type: "piemenu",
-        items: result.piemenu,
-      };
-    }
+  const result = await callActions({
+    actions: message.action,
+    contentContext: message.context,
+  });
+  if (result) {
+    return {
+      type: "piemenu",
+      items: result.piemenu,
+    };
   }
 
   return {

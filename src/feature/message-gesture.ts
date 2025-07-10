@@ -1,5 +1,5 @@
 import { array, type InferOutput, literal, object } from "valibot";
-import { callAction, type PiemenuItem } from "./action";
+import { callActions, type PiemenuItem } from "./action";
 import {
   buildContentActionContext,
   ContentActionContextSchema,
@@ -48,21 +48,15 @@ export async function handleGestureMessage(
     };
   }
 
-  const actions = Array.isArray(gesture.action)
-    ? gesture.action
-    : [gesture.action];
-
-  for (const action of actions) {
-    const result = await callAction({
-      gestureAction: action,
-      contentContext: message.context,
-    });
-    if (result) {
-      return {
-        type: "piemenu",
-        items: result.piemenu,
-      };
-    }
+  const result = await callActions({
+    actions: gesture.action,
+    contentContext: message.context,
+  });
+  if (result) {
+    return {
+      type: "piemenu",
+      items: result.piemenu,
+    };
   }
 
   return {

@@ -334,7 +334,7 @@ const actions = {
   unknown
 >;
 
-export async function callAction({
+async function callAction({
   gestureAction,
   contentContext,
 }: {
@@ -368,4 +368,26 @@ export async function callAction({
 
   const action = actions[gestureAction.name];
   await action(context);
+}
+
+export async function callActions({
+  actions,
+  contentContext,
+}: {
+  actions: GestureAction | GestureAction[];
+  contentContext: ActionContext["content"];
+}): Promise<{ piemenu: PiemenuItem[] } | null> {
+  const allActions = Array.isArray(actions) ? actions : [actions];
+
+  for (const action of allActions) {
+    const result = await callAction({
+      gestureAction: action,
+      contentContext,
+    });
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type { Point } from "@/src/feature/direction";
 
 const useAnimation = (callback: () => void) => {
-  const ref = useRef<number | undefined>(undefined);
+  const ref = useRef<number | null>(null);
 
   useEffect(() => {
     const cancel = () => {

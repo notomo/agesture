@@ -8,7 +8,14 @@ export default defineConfig({
     name: "agesture",
     description: "A browser extension for mouse gestures",
     version: "0.0.1",
-    permissions: ["storage", "tabs", "bookmarks", "scripting", "search"],
+    permissions: [
+      "storage",
+      "tabs",
+      "bookmarks",
+      "scripting",
+      "search",
+      "sessions",
+    ],
     host_permissions: ["http://*/*", "https://*/*"],
     action: {
       default_popup: "src/entrypoints/popup/index.html",

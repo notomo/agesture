@@ -157,6 +157,12 @@ export const DEFAULT_SETTING: Setting = {
         name: "closeOtherTabs",
       },
     },
+    {
+      inputs: ["RIGHT", "UP"],
+      action: {
+        name: "reopenLastClosedTab",
+      },
+    },
   ],
 };
 

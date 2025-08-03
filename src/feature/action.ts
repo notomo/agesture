@@ -179,6 +179,18 @@ async function fullscreenVideoAction({ getCurrentTab }: ActionContext) {
   });
 }
 
+async function reopenLastClosedTabAction(_: ActionContext) {
+  const sessions = await browser.sessions.getRecentlyClosed({
+    maxResults: 1,
+  });
+  const sessionId = sessions.at(0)?.tab?.sessionId;
+  if (sessionId) {
+    return;
+  }
+
+  await browser.sessions.restore(sessionId);
+}
+
 async function doNothingAction(_: ActionContext) {
   // Intentionally does nothing
 }
@@ -195,6 +207,7 @@ const NoArgsActionNameSchema = union([
   literal("closeOtherTabs"),
   literal("moveTabToNextWindow"),
   literal("fullscreenVideo"),
+  literal("reopenLastClosedTab"),
   literal("doNothing"),
 ]);
 const ActionNameSchema = union([
@@ -325,6 +338,7 @@ const actions = {
   maximizeWindow: maximizeWindowAction,
   moveTabToNextWindow: moveTabToNextWindowAction,
   fullscreenVideo: fullscreenVideoAction,
+  reopenLastClosedTab: reopenLastClosedTabAction,
   doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,

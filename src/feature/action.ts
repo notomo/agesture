@@ -183,8 +183,9 @@ async function reopenLastClosedTabAction(_: ActionContext) {
   const sessions = await browser.sessions.getRecentlyClosed({
     maxResults: 1,
   });
+
   const sessionId = sessions.at(0)?.tab?.sessionId;
-  if (sessionId) {
+  if (!sessionId) {
     return;
   }
 

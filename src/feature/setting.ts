@@ -163,6 +163,12 @@ export const DEFAULT_SETTING: Setting = {
         name: "reopenLastClosedTab",
       },
     },
+    {
+      inputs: ["UP", "RIGHT", "DOWN", "LEFT"],
+      action: {
+        name: "moveTabsToCurrentWindow",
+      },
+    },
   ],
 };
 

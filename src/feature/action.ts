@@ -192,6 +192,30 @@ async function reopenLastClosedTabAction(_: ActionContext) {
   await browser.sessions.restore(sessionId);
 }
 
+async function moveTabsToCurrentWindowAction({ getCurrentTab }: ActionContext) {
+  const currentTab = await getCurrentTab();
+  const currentWindowId = currentTab.windowId;
+
+  const allWindows = await browser.windows.getAll({ populate: true });
+  const tabIds: number[] = [];
+  for (const window of allWindows) {
+    if (window.id !== currentWindowId && window.tabs) {
+      for (const tab of window.tabs) {
+        if (tab.id !== undefined) {
+          tabIds.push(tab.id);
+        }
+      }
+    }
+  }
+
+  if (tabIds.length > 0) {
+    await browser.tabs.move(tabIds, {
+      windowId: currentWindowId,
+      index: -1,
+    });
+  }
+}
+
 async function doNothingAction(_: ActionContext) {
   // Intentionally does nothing
 }
@@ -209,6 +233,7 @@ const NoArgsActionNameSchema = union([
   literal("moveTabToNextWindow"),
   literal("fullscreenVideo"),
   literal("reopenLastClosedTab"),
+  literal("moveTabsToCurrentWindow"),
   literal("doNothing"),
 ]);
 const ActionNameSchema = union([
@@ -340,6 +365,7 @@ const actions = {
   moveTabToNextWindow: moveTabToNextWindowAction,
   fullscreenVideo: fullscreenVideoAction,
   reopenLastClosedTab: reopenLastClosedTabAction,
+  moveTabsToCurrentWindow: moveTabsToCurrentWindowAction,
   doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,

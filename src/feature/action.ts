@@ -29,7 +29,10 @@ async function bookmarkAction({ getCurrentTab }: ActionContext) {
 async function removeBookmarkAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   if (!tab.url) {
-    return;
+    return {
+      type: "message",
+      notice: "No URL available to remove bookmark",
+    } as const;
   }
 
   const bookmarkIds = (
@@ -80,7 +83,7 @@ async function scrollBottomAction({ getCurrentTab }: ActionContext) {
 async function searchAction({ content, getCurrentTab }: ActionContext) {
   const selectedText = content.selectedText.trim();
   if (!selectedText) {
-    return;
+    return { type: "message", notice: "No text selected for search" } as const;
   }
 
   const tab = await getCurrentTab();
@@ -153,7 +156,10 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
     (window) => window.id === tab.windowId,
   );
   if (currentWindowIndex === -1) {
-    return;
+    return {
+      type: "message",
+      notice: "Current window not found in window list",
+    } as const;
   }
 
   const nextWindowIndex = (currentWindowIndex + 1) % sortedWindows.length;
@@ -186,7 +192,10 @@ async function reopenLastClosedTabAction(_: ActionContext) {
 
   const sessionId = sessions.at(0)?.tab?.sessionId;
   if (!sessionId) {
-    return;
+    return {
+      type: "message",
+      notice: "No recently closed tabs to reopen",
+    } as const;
   }
 
   await browser.sessions.restore(sessionId);
@@ -208,12 +217,17 @@ async function moveTabsToCurrentWindowAction({ getCurrentTab }: ActionContext) {
     }
   }
 
-  if (tabIds.length > 0) {
-    await browser.tabs.move(tabIds, {
-      windowId: currentWindowId,
-      index: -1,
-    });
+  if (tabIds.length === 0) {
+    return {
+      type: "message",
+      notice: "No other tabs",
+    } as const;
   }
+
+  await browser.tabs.move(tabIds, {
+    windowId: currentWindowId,
+    index: -1,
+  });
 }
 
 async function doNothingAction(_: ActionContext) {
@@ -300,6 +314,10 @@ const PiemenuItemSchema = object({
 });
 export type PiemenuItem = InferOutput<typeof PiemenuItemSchema>;
 
+type ActionResult =
+  | { type: "message"; notice: string }
+  | { type: "piemenu"; piemenu: PiemenuItem[] };
+
 const PiemenuActionSchema = object({
   name: literal("piemenu"),
   args: object({
@@ -314,7 +332,10 @@ async function openLinkAction({
   active,
 }: ActionContext & OpenLinkActionArgs) {
   if (!content.url) {
-    return;
+    return {
+      type: "message",
+      notice: "No link URL available to open",
+    } as const;
   }
 
   const tab = await getCurrentTab();
@@ -338,6 +359,7 @@ async function openUrlAction({
 
 async function piemenuAction({ menus }: ActionContext & PiemenuActionArgs) {
   return {
+    type: "piemenu" as const,
     piemenu: menus,
   };
 }
@@ -386,20 +408,17 @@ async function callAction({
 
   if (gestureAction.name === "openLink") {
     const action = actions[gestureAction.name];
-    await action({ ...context, ...gestureAction.args });
-    return;
+    return await action({ ...context, ...gestureAction.args });
   }
 
   if (gestureAction.name === "openUrl") {
     const action = actions[gestureAction.name];
-    await action({ ...context, ...gestureAction.args });
-    return;
+    return await action({ ...context, ...gestureAction.args });
   }
 
   if (gestureAction.name === "maximizeWindow") {
     const action = actions[gestureAction.name];
-    await action({ ...context, ...gestureAction.args });
-    return;
+    return await action({ ...context, ...gestureAction.args });
   }
 
   if (gestureAction.name === "piemenu") {
@@ -408,7 +427,7 @@ async function callAction({
   }
 
   const action = actions[gestureAction.name];
-  await action(context);
+  return await action(context);
 }
 
 export async function callActions({
@@ -417,7 +436,7 @@ export async function callActions({
 }: {
   actions: GestureAction | GestureAction[];
   contentContext: ActionContext["content"];
-}): Promise<{ piemenu: PiemenuItem[] } | null> {
+}): Promise<ActionResult | null> {
   const allActions = Array.isArray(actions) ? actions : [actions];
 
   for (const action of allActions) {

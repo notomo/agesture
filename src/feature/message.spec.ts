@@ -85,6 +85,30 @@ describe("gesture message handling", () => {
       type: "none",
     });
   });
+
+  it("responses message for early return cases", async () => {
+    settingItem.setValue({
+      gestures: [
+        {
+          inputs: ["LEFT", "RIGHT"],
+          action: {
+            name: "search",
+          },
+        },
+      ],
+    });
+
+    const got = await handleMessage({
+      type: "gesture",
+      directions: ["LEFT", "RIGHT"],
+      context: { selectedText: "", url: undefined },
+    });
+
+    expect(got).toEqual({
+      type: "message",
+      notice: "No text selected for search",
+    });
+  });
 });
 
 describe("piemenu action message handling", () => {
@@ -133,6 +157,22 @@ describe("piemenu action message handling", () => {
 
     expect(got).toEqual({
       type: "none",
+    });
+  });
+
+  it("responses message for early return cases", async () => {
+    const got = await handleMessage({
+      type: "piemenuAction",
+      action: {
+        name: "openLink",
+        args: { active: true },
+      },
+      context: { selectedText: "", url: undefined },
+    });
+
+    expect(got).toEqual({
+      type: "message",
+      notice: "No link URL available to open",
     });
   });
 });

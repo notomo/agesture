@@ -53,10 +53,18 @@ export async function handleGestureMessage(
     contentContext: message.context,
   });
   if (result) {
-    return {
-      type: "piemenu",
-      items: result.piemenu,
-    };
+    if (result.type === "message") {
+      return {
+        type: "message",
+        notice: result.notice,
+      };
+    }
+    if (result.type === "piemenu") {
+      return {
+        type: "piemenu",
+        items: result.piemenu,
+      };
+    }
   }
 
   return {

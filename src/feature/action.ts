@@ -18,6 +18,26 @@ import {
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
 
+async function getWindowIds(): Promise<number[]> {
+  const allWindows = await browser.windows.getAll();
+  return allWindows
+    .map((window) => window.id)
+    .filter((id): id is number => id !== undefined);
+}
+
+async function getTabIds({
+  excludeWindowId,
+}: {
+  excludeWindowId: number;
+}): Promise<number[]> {
+  const allWindows = await browser.windows.getAll({ populate: true });
+  return allWindows
+    .filter((window) => window.id !== excludeWindowId && window.tabs)
+    .flatMap((window) => window.tabs || [])
+    .map((tab) => tab.id)
+    .filter((id): id is number => id !== undefined);
+}
+
 async function bookmarkAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   await browser.bookmarks.create({
@@ -122,17 +142,15 @@ async function maximizeWindowAction({
     return;
   }
 
-  const allWindows = await browser.windows.getAll();
-  const currentTab = await getCurrentTab();
-  for (const window of allWindows) {
-    if (window.id) {
-      await browser.windows.update(window.id, {
-        state: "maximized",
-        focused: true,
-      });
-    }
+  const windowIds = await getWindowIds();
+  for (const windowId of windowIds) {
+    await browser.windows.update(windowId, {
+      state: "maximized",
+      focused: true,
+    });
   }
 
+  const currentTab = await getCurrentTab();
   await browser.windows.update(currentTab.windowId, {
     focused: true,
   });
@@ -203,19 +221,7 @@ async function reopenLastClosedTabAction(_: ActionContext) {
 
 async function moveTabsToCurrentWindowAction({ getCurrentTab }: ActionContext) {
   const currentTab = await getCurrentTab();
-  const currentWindowId = currentTab.windowId;
-
-  const allWindows = await browser.windows.getAll({ populate: true });
-  const tabIds: number[] = [];
-  for (const window of allWindows) {
-    if (window.id !== currentWindowId && window.tabs) {
-      for (const tab of window.tabs) {
-        if (tab.id !== undefined) {
-          tabIds.push(tab.id);
-        }
-      }
-    }
-  }
+  const tabIds = await getTabIds({ excludeWindowId: currentTab.windowId });
 
   if (tabIds.length === 0) {
     return {
@@ -225,7 +231,7 @@ async function moveTabsToCurrentWindowAction({ getCurrentTab }: ActionContext) {
   }
 
   await browser.tabs.move(tabIds, {
-    windowId: currentWindowId,
+    windowId: currentTab.windowId,
     index: -1,
   });
 }

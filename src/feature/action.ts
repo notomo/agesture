@@ -51,7 +51,7 @@ async function removeBookmarkAction({ getCurrentTab }: ActionContext) {
   if (!tab.url) {
     return {
       type: "message",
-      notice: "No URL available to remove bookmark",
+      message: { info: "No URL available to remove bookmark" },
     } as const;
   }
 
@@ -103,7 +103,10 @@ async function scrollBottomAction({ getCurrentTab }: ActionContext) {
 async function searchAction({ content, getCurrentTab }: ActionContext) {
   const selectedText = content.selectedText.trim();
   if (!selectedText) {
-    return { type: "message", notice: "No text selected for search" } as const;
+    return {
+      type: "message",
+      message: { info: "No text selected for search" },
+    } as const;
   }
 
   const tab = await getCurrentTab();
@@ -176,7 +179,7 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
   if (currentWindowIndex === -1) {
     return {
       type: "message",
-      notice: "Current window not found in window list",
+      message: { info: "Current window not found in window list" },
     } as const;
   }
 
@@ -212,7 +215,7 @@ async function reopenLastClosedTabAction(_: ActionContext) {
   if (!sessionId) {
     return {
       type: "message",
-      notice: "No recently closed tabs to reopen",
+      message: { info: "No recently closed tabs to reopen" },
     } as const;
   }
 
@@ -226,7 +229,7 @@ async function moveTabsToCurrentWindowAction({ getCurrentTab }: ActionContext) {
   if (tabIds.length === 0) {
     return {
       type: "message",
-      notice: "No other tabs",
+      message: { info: "No other tabs" },
     } as const;
   }
 
@@ -320,9 +323,17 @@ const PiemenuItemSchema = object({
 });
 export type PiemenuItem = InferOutput<typeof PiemenuItemSchema>;
 
-type ActionResult =
-  | { type: "message"; notice: string }
-  | { type: "piemenu"; piemenu: PiemenuItem[] };
+export type ActionResult =
+  | {
+      type: "message";
+      message: {
+        info: string;
+      } & Record<string, unknown>;
+    }
+  | {
+      type: "piemenu";
+      items: PiemenuItem[];
+    };
 
 const PiemenuActionSchema = object({
   name: literal("piemenu"),
@@ -340,7 +351,7 @@ async function openLinkAction({
   if (!content.url) {
     return {
       type: "message",
-      notice: "No link URL available to open",
+      message: { info: "No link URL available to open" },
     } as const;
   }
 
@@ -366,7 +377,7 @@ async function openUrlAction({
 async function piemenuAction({ menus }: ActionContext & PiemenuActionArgs) {
   return {
     type: "piemenu" as const,
-    piemenu: menus,
+    items: menus,
   };
 }
 
@@ -403,6 +414,25 @@ const actions = {
   unknown
 >;
 
+function buildResult({
+  actionName,
+  result,
+}: {
+  actionName: string;
+  result?: ActionResult;
+}) {
+  if (result?.type === "message") {
+    return {
+      type: result.type,
+      message: {
+        ...result.message,
+        actionName,
+      },
+    };
+  }
+  return result;
+}
+
 async function callAction({
   gestureAction,
   contentContext,
@@ -411,29 +441,35 @@ async function callAction({
   contentContext: ActionContext["content"];
 }) {
   const context = buildActionContext(contentContext);
+  const actionName = gestureAction.name;
 
-  if (gestureAction.name === "openLink") {
-    const action = actions[gestureAction.name];
-    return await action({ ...context, ...gestureAction.args });
+  if (actionName === "openLink") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result: result ?? undefined });
   }
 
-  if (gestureAction.name === "openUrl") {
-    const action = actions[gestureAction.name];
-    return await action({ ...context, ...gestureAction.args });
+  if (actionName === "openUrl") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result: result ?? undefined });
   }
 
-  if (gestureAction.name === "maximizeWindow") {
-    const action = actions[gestureAction.name];
-    return await action({ ...context, ...gestureAction.args });
+  if (actionName === "maximizeWindow") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result: result ?? undefined });
   }
 
-  if (gestureAction.name === "piemenu") {
-    const action = actions[gestureAction.name];
-    return await action({ ...context, ...gestureAction.args });
+  if (actionName === "piemenu") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result });
   }
 
-  const action = actions[gestureAction.name];
-  return await action(context);
+  const action = actions[actionName];
+  const result = await action(context);
+  return buildResult({ actionName, result: result ?? undefined });
 }
 
 export async function callActions({

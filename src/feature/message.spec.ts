@@ -16,7 +16,10 @@ describe("gesture message handling", () => {
     });
     expect(got).toEqual({
       type: "message",
-      notice: "No matching gesture found for directions: ",
+      message: {
+        info: "No matching gesture found",
+        directions: [],
+      },
     });
   });
 
@@ -106,7 +109,10 @@ describe("gesture message handling", () => {
 
     expect(got).toEqual({
       type: "message",
-      notice: "No text selected for search",
+      message: {
+        info: "No text selected for search",
+        actionName: "search",
+      },
     });
   });
 });
@@ -172,7 +178,10 @@ describe("piemenu action message handling", () => {
 
     expect(got).toEqual({
       type: "message",
-      notice: "No link URL available to open",
+      message: {
+        info: "No link URL available to open",
+        actionName: "openLink",
+      },
     });
   });
 });

@@ -6,7 +6,7 @@ export default defineBackground({
       (rawMessage, _sender, sendResponse) => {
         handleMessage(rawMessage).then((x) => {
           if (x.type === "message") {
-            console.log(x.notice);
+            console.info(x.message);
           }
           sendResponse(x);
         });

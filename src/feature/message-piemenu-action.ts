@@ -1,9 +1,9 @@
 import { array, type InferOutput, literal, object, union } from "valibot";
 import {
+  type ActionResult,
   callActions,
   type GestureAction,
   GestureActionSchema,
-  type PiemenuItem,
 } from "./action";
 import {
   buildContentActionContext,
@@ -25,14 +25,7 @@ export const PiemenuActionMessageSchema = object({
 type PiemenuActionMessage = InferOutput<typeof PiemenuActionMessageSchema>;
 
 type PiemenuActionResponse =
-  | {
-      type: "piemenu";
-      items: PiemenuItem[];
-    }
-  | {
-      type: "message";
-      notice: string;
-    }
+  | ActionResult
   | {
       type: "none";
     };
@@ -44,24 +37,7 @@ export async function handlePiemenuActionMessage(
     actions: message.action,
     contentContext: message.context,
   });
-  if (result) {
-    if (result.type === "message") {
-      return {
-        type: "message",
-        notice: result.notice,
-      };
-    }
-    if (result.type === "piemenu") {
-      return {
-        type: "piemenu",
-        items: result.piemenu,
-      };
-    }
-  }
-
-  return {
-    type: "none",
-  };
+  return result ?? { type: "none" };
 }
 
 export async function sendPimenuActionMessage({

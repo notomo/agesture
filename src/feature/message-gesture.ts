@@ -1,5 +1,5 @@
 import { array, type InferOutput, literal, object } from "valibot";
-import { callActions, type PiemenuItem } from "./action";
+import { type ActionResult, callActions } from "./action";
 import {
   buildContentActionContext,
   ContentActionContextSchema,
@@ -21,14 +21,7 @@ export const GestureMessageSchema = object({
 type GestureMessage = InferOutput<typeof GestureMessageSchema>;
 
 type GestureResponse =
-  | {
-      type: "piemenu";
-      items: PiemenuItem[];
-    }
-  | {
-      type: "message";
-      notice: string;
-    }
+  | ActionResult
   | {
       type: "none";
     };
@@ -44,7 +37,10 @@ export async function handleGestureMessage(
   if (!gesture) {
     return {
       type: "message",
-      notice: `No matching gesture found for directions: ${message.directions.join(",")}`,
+      message: {
+        info: "No matching gesture found",
+        directions: message.directions,
+      },
     };
   }
 
@@ -52,24 +48,7 @@ export async function handleGestureMessage(
     actions: gesture.action,
     contentContext: message.context,
   });
-  if (result) {
-    if (result.type === "message") {
-      return {
-        type: "message",
-        notice: result.notice,
-      };
-    }
-    if (result.type === "piemenu") {
-      return {
-        type: "piemenu",
-        items: result.piemenu,
-      };
-    }
-  }
-
-  return {
-    type: "none",
-  };
+  return result ?? { type: "none" };
 }
 
 export async function sendGestureMessage({

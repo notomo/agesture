@@ -13,6 +13,7 @@ export const App = () => {
     center: Point;
   } | null>(null);
   const isDraggingRef = useRef(false);
+  const [iframeOverlays, setIframeOverlays] = useState<HTMLElement[]>([]);
 
   const addPoint = useCallback((point: Point) => {
     setPoints((prev) => [...prev, point]);
@@ -23,6 +24,52 @@ export const App = () => {
     isDraggingRef.current = false;
   }, []);
 
+  const createIframeOverlays = useCallback(() => {
+    const iframes = document.querySelectorAll("iframe");
+    const overlays: HTMLElement[] = [];
+
+    iframes.forEach((iframe) => {
+      const rect = iframe.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.top = `${rect.top + window.scrollY}px`;
+      overlay.style.left = `${rect.left + window.scrollX}px`;
+      overlay.style.width = `${rect.width}px`;
+      overlay.style.height = `${rect.height}px`;
+      overlay.style.backgroundColor = "transparent";
+      overlay.style.zIndex = "2147483646";
+      overlay.style.pointerEvents = "auto";
+      overlay.style.display = "none";
+
+      document.body.appendChild(overlay);
+      overlays.push(overlay);
+    });
+
+    return overlays;
+  }, []);
+
+  const removeIframeOverlays = useCallback((overlays: HTMLElement[]) => {
+    overlays.forEach((overlay) => {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    });
+  }, []);
+
+  const showIframeOverlays = useCallback((overlays: HTMLElement[]) => {
+    overlays.forEach((overlay) => {
+      overlay.style.display = "block";
+    });
+  }, []);
+
+  const hideIframeOverlays = useCallback((overlays: HTMLElement[]) => {
+    overlays.forEach((overlay) => {
+      overlay.style.display = "none";
+    });
+  }, []);
+
   const handleMouseDown = useCallback(
     (e: MouseEvent) => {
       if (e.button !== 2) {
@@ -30,9 +77,14 @@ export const App = () => {
       }
       isDraggingRef.current = true;
       addPoint({ x: e.clientX, y: e.clientY });
+
+      const overlays = createIframeOverlays();
+      setIframeOverlays(overlays);
+      showIframeOverlays(overlays);
+
       e.preventDefault(); // to prevent unselecting text
     },
-    [addPoint],
+    [addPoint, createIframeOverlays, showIframeOverlays],
   );
 
   const handleMouseMove = useCallback(
@@ -50,6 +102,10 @@ export const App = () => {
       if (e.button !== 2 || !isDraggingRef.current) {
         return;
       }
+
+      hideIframeOverlays(iframeOverlays);
+      removeIframeOverlays(iframeOverlays);
+      setIframeOverlays([]);
 
       const currentPoints = points;
       const directions = fromPoints({ points: currentPoints, minDistance: 20 });
@@ -77,20 +133,40 @@ export const App = () => {
         });
       }
     },
-    [points, clearPoints],
+    [
+      points,
+      clearPoints,
+      iframeOverlays,
+      hideIframeOverlays,
+      removeIframeOverlays,
+    ],
   );
 
   useEffect(() => {
+    const addOverlayListeners = (overlay: HTMLElement) => {
+      overlay.addEventListener("mousedown", handleMouseDown);
+      overlay.addEventListener("mousemove", handleMouseMove);
+      overlay.addEventListener("mouseup", handleMouseUp);
+    };
+
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+
+    iframeOverlays.forEach(addOverlayListeners);
 
     return () => {
       document.removeEventListener("mousedown", handleMouseDown);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+
+      iframeOverlays.forEach((overlay) => {
+        overlay.removeEventListener("mousedown", handleMouseDown);
+        overlay.removeEventListener("mousemove", handleMouseMove);
+        overlay.removeEventListener("mouseup", handleMouseUp);
+      });
     };
-  }, [handleMouseDown, handleMouseMove, handleMouseUp]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, iframeOverlays]);
 
   const hasPoint = points.length > 0;
   const pimenuExists = piemenu !== null;

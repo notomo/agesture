@@ -23,8 +23,8 @@ export const Overlay = ({
 
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
-      overlay.style.top = `${rect.top + window.scrollY}px`;
-      overlay.style.left = `${rect.left + window.scrollX}px`;
+      overlay.style.top = `${rect.top}px`;
+      overlay.style.left = `${rect.left}px`;
       overlay.style.width = `${rect.width}px`;
       overlay.style.height = `${rect.height}px`;
       overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";

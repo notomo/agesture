@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const Overlay = ({
   isActive,
@@ -12,6 +12,15 @@ export const Overlay = ({
   onMouseUp: (e: MouseEvent) => void;
 }) => {
   const [iframeOverlays, setIframeOverlays] = useState<HTMLElement[]>([]);
+  const onMouseDownRef = useRef(onMouseDown);
+  const onMouseMoveRef = useRef(onMouseMove);
+  const onMouseUpRef = useRef(onMouseUp);
+
+  useEffect(() => {
+    onMouseDownRef.current = onMouseDown;
+    onMouseMoveRef.current = onMouseMove;
+    onMouseUpRef.current = onMouseUp;
+  });
 
   const createIframeOverlays = useCallback(() => {
     const iframes = document.querySelectorAll("iframe");
@@ -80,21 +89,33 @@ export const Overlay = ({
 
   useEffect(() => {
     const addOverlayListeners = (overlay: HTMLElement) => {
-      overlay.addEventListener("mousedown", onMouseDown);
-      overlay.addEventListener("mousemove", onMouseMove);
-      overlay.addEventListener("mouseup", onMouseUp);
+      const handleMouseDown = (e: MouseEvent) => onMouseDownRef.current(e);
+      const handleMouseMove = (e: MouseEvent) => onMouseMoveRef.current(e);
+      const handleMouseUp = (e: MouseEvent) => onMouseUpRef.current(e);
+
+      overlay.addEventListener("mousedown", handleMouseDown);
+      overlay.addEventListener("mousemove", handleMouseMove);
+      overlay.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        overlay.removeEventListener("mousedown", handleMouseDown);
+        overlay.removeEventListener("mousemove", handleMouseMove);
+        overlay.removeEventListener("mouseup", handleMouseUp);
+      };
     };
 
-    iframeOverlays.forEach(addOverlayListeners);
+    const cleanupFunctions: (() => void)[] = [];
+    iframeOverlays.forEach((overlay) => {
+      const cleanup = addOverlayListeners(overlay);
+      cleanupFunctions.push(cleanup);
+    });
 
     return () => {
-      iframeOverlays.forEach((overlay) => {
-        overlay.removeEventListener("mousedown", onMouseDown);
-        overlay.removeEventListener("mousemove", onMouseMove);
-        overlay.removeEventListener("mouseup", onMouseUp);
-      });
+      for (const cleanup of cleanupFunctions) {
+        cleanup();
+      }
     };
-  }, [iframeOverlays, onMouseDown, onMouseMove, onMouseUp]);
+  }, [iframeOverlays]);
 
   return null;
 };

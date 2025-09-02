@@ -19,38 +19,25 @@ const IframeOverlay = ({
   onMouseMove: (e: MouseEvent) => void;
   onMouseUp: (e: MouseEvent) => void;
 }) => {
-  const handleMouseDown = (e: React.MouseEvent) => {
-    onMouseDown(e.nativeEvent);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    onMouseMove(e.nativeEvent);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    onMouseUp(e.nativeEvent);
-  };
-
   return createPortal(
     <button
       type="button"
+      className="pointer-events-auto fixed z-9998 block cursor-default border-none bg-black/50 p-0"
       style={{
-        position: "fixed",
         top: `${rect.top}px`,
         left: `${rect.left}px`,
         width: `${rect.width}px`,
         height: `${rect.height}px`,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        zIndex: 9998,
-        pointerEvents: "auto",
-        display: "block",
-        border: "none",
-        padding: 0,
-        cursor: "default",
       }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onMouseDown={(e: React.MouseEvent) => {
+        onMouseDown(e.nativeEvent);
+      }}
+      onMouseMove={(e: React.MouseEvent) => {
+        onMouseMove(e.nativeEvent);
+      }}
+      onMouseUp={(e: React.MouseEvent) => {
+        onMouseUp(e.nativeEvent);
+      }}
     />,
     document.body,
   );

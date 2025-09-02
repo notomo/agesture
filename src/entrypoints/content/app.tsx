@@ -54,7 +54,10 @@ export const App = () => {
       }
 
       const currentPoints = points;
-      const directions = fromPoints({ points: currentPoints, minDistance: 20 });
+      const directions = fromPoints({
+        points: currentPoints,
+        minDistance: 40,
+      });
 
       if (directions.length === 0) {
         clearPoints();

@@ -1,4 +1,60 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
+interface IframeRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+const IframeOverlay = ({
+  rect,
+  onMouseDown,
+  onMouseMove,
+  onMouseUp,
+}: {
+  rect: IframeRect;
+  onMouseDown: (e: MouseEvent) => void;
+  onMouseMove: (e: MouseEvent) => void;
+  onMouseUp: (e: MouseEvent) => void;
+}) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    onMouseDown(e.nativeEvent);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    onMouseMove(e.nativeEvent);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    onMouseUp(e.nativeEvent);
+  };
+
+  return createPortal(
+    <button
+      type="button"
+      style={{
+        position: "fixed",
+        top: `${rect.top}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 9998,
+        pointerEvents: "auto",
+        display: "block",
+        border: "none",
+        padding: 0,
+        cursor: "default",
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    />,
+    document.body,
+  );
+};
 
 export const Overlay = ({
   isActive,
@@ -11,111 +67,41 @@ export const Overlay = ({
   onMouseMove: (e: MouseEvent) => void;
   onMouseUp: (e: MouseEvent) => void;
 }) => {
-  const [iframeOverlays, setIframeOverlays] = useState<HTMLElement[]>([]);
-  const onMouseDownRef = useRef(onMouseDown);
-  const onMouseMoveRef = useRef(onMouseMove);
-  const onMouseUpRef = useRef(onMouseUp);
+  const [iframeRects, setIframeRects] = useState<IframeRect[]>([]);
 
   useEffect(() => {
-    onMouseDownRef.current = onMouseDown;
-    onMouseMoveRef.current = onMouseMove;
-    onMouseUpRef.current = onMouseUp;
-  });
+    if (!isActive) {
+      setIframeRects([]);
+      return;
+    }
 
-  const createIframeOverlays = useCallback(() => {
     const iframes = document.querySelectorAll("iframe");
-    const overlays: HTMLElement[] = [];
-
+    const rects: IframeRect[] = [];
     iframes.forEach((iframe) => {
       const rect = iframe.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
-
-      const overlay = document.createElement("div");
-      overlay.style.position = "fixed";
-      overlay.style.top = `${rect.top}px`;
-      overlay.style.left = `${rect.left}px`;
-      overlay.style.width = `${rect.width}px`;
-      overlay.style.height = `${rect.height}px`;
-      overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-      overlay.style.zIndex = "9998";
-      overlay.style.pointerEvents = "auto";
-      overlay.style.display = "none";
-
-      document.body.appendChild(overlay);
-      overlays.push(overlay);
-    });
-
-    return overlays;
-  }, []);
-
-  const removeIframeOverlays = useCallback((overlays: HTMLElement[]) => {
-    overlays.forEach((overlay) => {
-      if (overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
+      if (rect.width > 0 && rect.height > 0) {
+        rects.push({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        });
       }
     });
-  }, []);
+    setIframeRects(rects);
+  }, [isActive]);
 
-  const showIframeOverlays = useCallback((overlays: HTMLElement[]) => {
-    overlays.forEach((overlay) => {
-      overlay.style.display = "block";
-    });
-  }, []);
-
-  const hideIframeOverlays = useCallback((overlays: HTMLElement[]) => {
-    overlays.forEach((overlay) => {
-      overlay.style.display = "none";
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isActive && iframeOverlays.length === 0) {
-      const overlays = createIframeOverlays();
-      setIframeOverlays(overlays);
-      showIframeOverlays(overlays);
-    } else if (!isActive && iframeOverlays.length > 0) {
-      hideIframeOverlays(iframeOverlays);
-      removeIframeOverlays(iframeOverlays);
-      setIframeOverlays([]);
-    }
-  }, [
-    isActive,
-    iframeOverlays,
-    createIframeOverlays,
-    showIframeOverlays,
-    hideIframeOverlays,
-    removeIframeOverlays,
-  ]);
-
-  useEffect(() => {
-    const addOverlayListeners = (overlay: HTMLElement) => {
-      const handleMouseDown = (e: MouseEvent) => onMouseDownRef.current(e);
-      const handleMouseMove = (e: MouseEvent) => onMouseMoveRef.current(e);
-      const handleMouseUp = (e: MouseEvent) => onMouseUpRef.current(e);
-
-      overlay.addEventListener("mousedown", handleMouseDown);
-      overlay.addEventListener("mousemove", handleMouseMove);
-      overlay.addEventListener("mouseup", handleMouseUp);
-
-      return () => {
-        overlay.removeEventListener("mousedown", handleMouseDown);
-        overlay.removeEventListener("mousemove", handleMouseMove);
-        overlay.removeEventListener("mouseup", handleMouseUp);
-      };
-    };
-
-    const cleanupFunctions: (() => void)[] = [];
-    iframeOverlays.forEach((overlay) => {
-      const cleanup = addOverlayListeners(overlay);
-      cleanupFunctions.push(cleanup);
-    });
-
-    return () => {
-      for (const cleanup of cleanupFunctions) {
-        cleanup();
-      }
-    };
-  }, [iframeOverlays]);
-
-  return null;
+  return (
+    <>
+      {iframeRects.map((rect) => (
+        <IframeOverlay
+          key={`${rect.top}-${rect.left}-${rect.width}-${rect.height}`}
+          rect={rect}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+        />
+      ))}
+    </>
+  );
 };

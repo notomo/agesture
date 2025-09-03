@@ -22,12 +22,20 @@ const IframeOverlay = ({
   return createPortal(
     <button
       type="button"
-      className="pointer-events-auto fixed z-9998 block cursor-default border-none bg-black/50 p-0"
+      // Don't use tailwind styling
       style={{
+        position: "fixed",
         top: `${rect.top}px`,
         left: `${rect.left}px`,
         width: `${rect.width}px`,
         height: `${rect.height}px`,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 9998,
+        pointerEvents: "auto",
+        display: "block",
+        border: "none",
+        padding: 0,
+        cursor: "default",
       }}
       onMouseDown={(e: React.MouseEvent) => {
         onMouseDown(e.nativeEvent);

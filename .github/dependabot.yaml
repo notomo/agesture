@@ -10,11 +10,14 @@ updates:
       timezone: "Asia/Tokyo"
     assignees:
       - "notomo"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "saturday"
       time: "12:00"
       timezone: "Asia/Tokyo"
     assignees:
@@ -31,3 +34,5 @@ updates:
           - react-dom
           - "@types/react"
           - "@types/react-dom"
+    cooldown:
+      default-days: 7

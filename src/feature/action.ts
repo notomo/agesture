@@ -38,6 +38,27 @@ async function getTabIds({
     .filter((id): id is number => id !== undefined);
 }
 
+async function executeScript({
+  tabId,
+  url,
+  func,
+}: {
+  tabId: number;
+  url: string;
+  func: () => void;
+}) {
+  if (url.startsWith("chrome://")) {
+    return {
+      type: "message",
+      message: { info: "Cannot access chrome:// tab" },
+    } as const;
+  }
+  await browser.scripting.executeScript({
+    target: { tabId },
+    func,
+  });
+}
+
 async function bookmarkAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   await browser.bookmarks.create({
@@ -67,12 +88,38 @@ async function removeBookmarkAction({ getCurrentTab }: ActionContext) {
 
 async function goForwardAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.tabs.goForward(tab.id);
+  try {
+    await browser.tabs.goForward(tab.id);
+  } catch (e) {
+    if (
+      e instanceof Error &&
+      e.message === "Cannot find a next page in history."
+    ) {
+      return {
+        type: "message",
+        message: { info: e.message },
+      } as const;
+    }
+    throw e;
+  }
 }
 
 async function goBackwardAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.tabs.goBack(tab.id);
+  try {
+    await browser.tabs.goBack(tab.id);
+  } catch (e) {
+    if (
+      e instanceof Error &&
+      e.message === "Cannot find a next page in history."
+    ) {
+      return {
+        type: "message",
+        message: { info: e.message },
+      } as const;
+    }
+    throw e;
+  }
 }
 
 async function reloadAction({ getCurrentTab }: ActionContext) {
@@ -82,8 +129,9 @@ async function reloadAction({ getCurrentTab }: ActionContext) {
 
 async function scrollTopAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.scripting.executeScript({
-    target: { tabId: tab.id },
+  return await executeScript({
+    tabId: tab.id,
+    url: tab.url,
     func: () => {
       window.scrollTo(0, 0);
     },
@@ -92,8 +140,9 @@ async function scrollTopAction({ getCurrentTab }: ActionContext) {
 
 async function scrollBottomAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.scripting.executeScript({
-    target: { tabId: tab.id },
+  return await executeScript({
+    tabId: tab.id,
+    url: tab.url,
     func: () => {
       window.scrollTo(0, document.body.scrollHeight);
     },
@@ -198,8 +247,9 @@ async function moveTabToNextWindowAction({ getCurrentTab }: ActionContext) {
 
 async function fullscreenVideoAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
-  await browser.scripting.executeScript({
-    target: { tabId: tab.id },
+  return await executeScript({
+    tabId: tab.id,
+    url: tab.url,
     func: () => {
       document.querySelector("video")?.requestFullscreen();
     },

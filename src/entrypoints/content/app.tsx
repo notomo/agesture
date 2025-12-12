@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GestureAction, PiemenuItem } from "@/src/feature/action";
 import { fromPoints, type Point } from "@/src/feature/direction";
+import {
+  extractActionName,
+  findMatchingGesture,
+  type Gesture,
+} from "@/src/feature/gesture-matcher";
 import { sendGestureMessage } from "@/src/feature/message-gesture";
 import { sendPimenuActionMessage } from "@/src/feature/message-piemenu-action";
+import { getSetting } from "@/src/feature/setting";
+import { ActionNameDisplay } from "./action-name-display";
 import { Canvas } from "./canvas";
 import { Overlay } from "./overlay";
 import { Piemenu } from "./piemenu";
@@ -14,6 +21,11 @@ export const App = () => {
     center: Point;
   } | null>(null);
   const isDraggingRef = useRef(false);
+  const [matchedActionName, setMatchedActionName] = useState<string | null>(
+    null,
+  );
+  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const gesturesRef = useRef<readonly Gesture[]>([]);
 
   const addPoint = useCallback((point: Point) => {
     setPoints((prev) => [...prev, point]);
@@ -21,16 +33,25 @@ export const App = () => {
 
   const clearPoints = useCallback(() => {
     setPoints([]);
+    setMatchedActionName(null);
+    setStartPoint(null);
+    gesturesRef.current = [];
     isDraggingRef.current = false;
   }, []);
 
   const handleMouseDown = useCallback(
-    (e: MouseEvent) => {
+    async (e: MouseEvent) => {
       if (e.button !== 2) {
         return;
       }
       isDraggingRef.current = true;
-      addPoint({ x: e.clientX, y: e.clientY });
+      const point = { x: e.clientX, y: e.clientY };
+      setStartPoint(point);
+      addPoint(point);
+
+      // Load gestures once at the start
+      const setting = await getSetting();
+      gesturesRef.current = setting.gestures;
 
       e.preventDefault(); // to prevent unselecting text
     },
@@ -42,7 +63,36 @@ export const App = () => {
       if (e.buttons !== 2 || !isDraggingRef.current) {
         return;
       }
-      addPoint({ x: e.clientX, y: e.clientY });
+
+      const newPoint = { x: e.clientX, y: e.clientY };
+      addPoint(newPoint);
+
+      // Calculate directions from current points and check for match
+      setPoints((currentPoints) => {
+        const allPoints = [...currentPoints, newPoint];
+        const directions = fromPoints({
+          points: allPoints,
+          minDistance: 40,
+        });
+
+        if (directions.length === 0) {
+          setMatchedActionName(null);
+          return allPoints;
+        }
+
+        const matchedGesture = findMatchingGesture({
+          directions,
+          gestures: gesturesRef.current,
+        });
+
+        if (matchedGesture) {
+          setMatchedActionName(extractActionName(matchedGesture.action));
+        } else {
+          setMatchedActionName(null);
+        }
+
+        return allPoints;
+      });
     },
     [addPoint],
   );
@@ -135,6 +185,12 @@ export const App = () => {
   return (
     <>
       <Canvas points={points} />
+      {startPoint && (
+        <ActionNameDisplay
+          actionName={matchedActionName}
+          position={startPoint}
+        />
+      )}
       <Overlay
         isActive={isDraggingRef.current}
         onMouseDown={handleMouseDown}

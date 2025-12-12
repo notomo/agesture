@@ -49,7 +49,6 @@ export const App = () => {
       setStartPoint(point);
       addPoint(point);
 
-      // Load gestures once at the start
       const setting = await getSetting();
       gesturesRef.current = setting.gestures;
 
@@ -67,7 +66,6 @@ export const App = () => {
       const newPoint = { x: e.clientX, y: e.clientY };
       addPoint(newPoint);
 
-      // Calculate directions from current points and check for match
       setPoints((currentPoints) => {
         const allPoints = [...currentPoints, newPoint];
         const directions = fromPoints({

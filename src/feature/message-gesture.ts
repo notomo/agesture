@@ -4,12 +4,8 @@ import {
   buildContentActionContext,
   ContentActionContextSchema,
 } from "./action-context";
-import {
-  type Direction,
-  DirectionSchema,
-  directionEquals,
-  type Point,
-} from "./direction";
+import { type Direction, DirectionSchema, type Point } from "./direction";
+import { findMatchingGesture } from "./gesture-matcher";
 import { getSetting } from "./setting";
 
 export const GestureMessageSchema = object({
@@ -31,8 +27,9 @@ export async function handleGestureMessage(
 ): Promise<GestureResponse> {
   const setting = await getSetting();
 
-  const gesture = setting.gestures.find((x) => {
-    return directionEquals(x.inputs, message.directions);
+  const gesture = findMatchingGesture({
+    gestures: setting.gestures,
+    directions: message.directions,
   });
   if (!gesture) {
     return {

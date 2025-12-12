@@ -1,14 +1,18 @@
-/**
- * Module for matching gesture directions to configured gestures
- */
+import { array, type InferOutput, object, union } from "valibot";
+import { type GestureAction, GestureActionSchema } from "./action";
+import { type Direction, DirectionSchema, directionEquals } from "./direction";
 
-import type { GestureAction } from "./action";
-import { type Direction, directionEquals } from "./direction";
+const GestureActionOrArraySchema = union([
+  GestureActionSchema,
+  array(GestureActionSchema),
+]);
 
-export type Gesture = {
-  inputs: Direction[];
-  action: GestureAction | GestureAction[];
-};
+export const GestureSchema = object({
+  inputs: array(DirectionSchema),
+  action: GestureActionOrArraySchema,
+});
+
+export type Gesture = InferOutput<typeof GestureSchema>;
 
 export function findMatchingGesture({
   directions,

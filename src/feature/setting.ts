@@ -6,20 +6,8 @@ import {
   pipe,
   safeParse,
   string,
-  union,
 } from "valibot";
-import { GestureActionSchema } from "./action";
-import { DirectionSchema } from "./direction";
-
-const GestureActionOrArraySchema = union([
-  GestureActionSchema,
-  array(GestureActionSchema),
-]);
-
-const GestureSchema = object({
-  inputs: array(DirectionSchema),
-  action: GestureActionOrArraySchema,
-});
+import { GestureSchema } from "./gesture-matcher";
 
 const SettingSchema = object({
   gestures: array(GestureSchema),

@@ -31,8 +31,8 @@
   "license": "MIT",
   "dependencies": {
     "clsx": "^2.1.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "tailwind-merge": "^3.4.0",
     "valibot": "^1.2.0"
   }

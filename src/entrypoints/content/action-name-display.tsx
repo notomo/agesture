@@ -13,14 +13,13 @@ export const ActionNameDisplay = ({
 
   return (
     <div
-      className="pointer-events-none fixed z-[9999]"
+      className="-translate-x-1/2 pointer-events-none fixed z-[9999]"
       style={{
         left: position.x,
         top: position.y + 30,
-        transform: "translate(-50%, 0)",
       }}
     >
-      <span className="rounded-md bg-black/70 px-4 py-2 font-bold font-sans text-2xl text-white">
+      <span className="rounded-md border-2 border-gray-700 bg-gray-900/90 p-4 font-bold font-sans text-4xl text-gray-50">
         {actionName}
       </span>
     </div>

@@ -51,14 +51,16 @@ export async function handleGestureMessage(
 export async function sendGestureMessage({
   directions,
   startPoint,
+  selectedText,
 }: {
   directions: Direction[];
   startPoint: Point;
+  selectedText: string;
 }) {
   const message: GestureMessage = {
     type: "gesture",
     directions,
-    context: buildContentActionContext({ startPoint }),
+    context: buildContentActionContext({ startPoint, selectedText }),
   };
   const response = await browser.runtime.sendMessage(message);
   return response as GestureResponse;

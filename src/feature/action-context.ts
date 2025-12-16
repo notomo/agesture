@@ -23,10 +23,6 @@ async function getCurrentTab() {
   };
 }
 
-function getSelectedText(): string {
-  return window.getSelection()?.toString() || "";
-}
-
 function findLinkUrl(point: { x: number; y: number }): string | undefined {
   const element = document.elementFromPoint(point.x, point.y);
 
@@ -52,11 +48,13 @@ type ContentActionContext = InferOutput<typeof ContentActionContextSchema>;
 
 export function buildContentActionContext({
   startPoint,
+  selectedText,
 }: {
   startPoint: Point;
+  selectedText: string;
 }): ContentActionContext {
   return {
-    selectedText: getSelectedText(),
+    selectedText,
     url: findLinkUrl(startPoint),
   };
 }

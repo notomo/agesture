@@ -43,14 +43,16 @@ export async function handlePiemenuActionMessage(
 export async function sendPimenuActionMessage({
   action,
   startPoint,
+  selectedText,
 }: {
   action: GestureAction | GestureAction[];
   startPoint: Point;
+  selectedText: string;
 }) {
   const message: PiemenuActionMessage = {
     type: "piemenuAction",
     action,
-    context: buildContentActionContext({ startPoint }),
+    context: buildContentActionContext({ startPoint, selectedText }),
   };
   const response = await browser.runtime.sendMessage(message);
   return response as PiemenuActionResponse;

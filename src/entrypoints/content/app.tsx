@@ -26,6 +26,7 @@ export const App = () => {
   );
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const gesturesRef = useRef<readonly Gesture[]>([]);
+  const selectedTextRef = useRef<string>("");
 
   const addPoint = useCallback((point: Point) => {
     setPoints((prev) => [...prev, point]);
@@ -37,6 +38,7 @@ export const App = () => {
     setStartPoint(null);
     gesturesRef.current = [];
     isDraggingRef.current = false;
+    selectedTextRef.current = "";
   }, []);
 
   const handleMouseDown = useCallback(
@@ -48,6 +50,8 @@ export const App = () => {
       const point = { x: e.clientX, y: e.clientY };
       setStartPoint(point);
       addPoint(point);
+
+      selectedTextRef.current = window.getSelection()?.toString() || "";
 
       const setting = await getSetting();
       gesturesRef.current = setting.gestures;
@@ -122,7 +126,11 @@ export const App = () => {
         throw new Error("startPoint should exist when gesture is triggered");
       }
 
-      const response = await sendGestureMessage({ directions, startPoint });
+      const response = await sendGestureMessage({
+        directions,
+        startPoint,
+        selectedText: selectedTextRef.current,
+      });
       if (response.type === "piemenu") {
         setPiemenu({
           items: response.items,
@@ -169,6 +177,7 @@ export const App = () => {
       const response = await sendPimenuActionMessage({
         action,
         startPoint: piemenu.center,
+        selectedText: selectedTextRef.current,
       });
       if (response.type === "piemenu") {
         setPiemenu({

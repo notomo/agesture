@@ -131,6 +131,9 @@ export const DEFAULT_SETTING: Setting = {
       inputs: ["UP", "RIGHT"],
       action: {
         name: "bookmark",
+        args: {
+          position: "top",
+        },
       },
     },
     {

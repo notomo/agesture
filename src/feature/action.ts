@@ -59,14 +59,6 @@ async function executeScript({
   });
 }
 
-async function bookmarkAction({ getCurrentTab }: ActionContext) {
-  const tab = await getCurrentTab();
-  await browser.bookmarks.create({
-    url: tab.url,
-    title: tab.title,
-  });
-}
-
 async function removeBookmarkAction({ getCurrentTab }: ActionContext) {
   const tab = await getCurrentTab();
   if (!tab.url) {
@@ -294,7 +286,6 @@ async function doNothingAction(_: ActionContext) {
 }
 
 const NoArgsActionNameSchema = union([
-  literal("bookmark"),
   literal("removeBookmark"),
   literal("goForward"),
   literal("goBackward"),
@@ -311,11 +302,44 @@ const NoArgsActionNameSchema = union([
 ]);
 const ActionNameSchema = union([
   NoArgsActionNameSchema,
+  literal("bookmark"),
   literal("openLink"),
   literal("openUrl"),
   literal("piemenu"),
   literal("maximizeWindow"),
 ]);
+
+const BookmarkActionSchema = object({
+  name: literal("bookmark"),
+  args: object({
+    position: optional(union([literal("top"), literal("bottom")]), "bottom"),
+  }),
+});
+type BookmarkActionArgs = InferOutput<typeof BookmarkActionSchema>["args"];
+
+async function bookmarkAction({
+  getCurrentTab,
+  position,
+}: ActionContext & BookmarkActionArgs) {
+  const tab = await getCurrentTab();
+
+  const index = (() => {
+    switch (position) {
+      case "top":
+        return 0;
+      case "bottom":
+        return undefined;
+      default:
+        throw new Error(`Invalid position: ${position satisfies never}`);
+    }
+  })();
+
+  await browser.bookmarks.create({
+    url: tab.url,
+    title: tab.title,
+    index,
+  });
+}
 
 const OpenLinkActionSchema = object({
   name: literal("openLink"),
@@ -341,6 +365,7 @@ const MaximizeWindowActionSchema = object({
 });
 
 const GestureActionWithoutPiemenuSchema = union([
+  BookmarkActionSchema,
   OpenLinkActionSchema,
   OpenUrlActionSchema,
   MaximizeWindowActionSchema,
@@ -492,6 +517,12 @@ async function callAction({
 }) {
   const context = buildActionContext(contentContext);
   const actionName = gestureAction.name;
+
+  if (actionName === "bookmark") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result: result ?? undefined });
+  }
 
   if (actionName === "openLink") {
     const action = actions[actionName];

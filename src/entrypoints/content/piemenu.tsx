@@ -148,7 +148,7 @@ const PiemenuLabel = ({
 
   return (
     <div
-      className="-translate-x-1/2 -translate-y-1/2 absolute flex h-8 w-30 items-center justify-center transition-all duration-150"
+      className="absolute flex h-8 w-30 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-150"
       style={{
         left: position.x,
         top: position.y,

@@ -13,7 +13,7 @@ export const ActionNameDisplay = ({
 
   return (
     <div
-      className="-translate-x-1/2 pointer-events-none fixed z-[9999]"
+      className="pointer-events-none fixed z-[9999] -translate-x-1/2"
       style={{
         left: position.x,
         top: position.y + 30,

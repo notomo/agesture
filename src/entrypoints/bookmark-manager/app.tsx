@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { isEditable } from "@/src/feature/bookmark-edit";
 import {
   type BookmarkNode,
   buildFolderPaths,
@@ -10,6 +11,11 @@ import {
 } from "@/src/feature/bookmark-path";
 import { cn } from "@/src/lib/tailwind";
 import { App as ContentApp } from "../content/app";
+import {
+  type DropTarget,
+  useBookmarkDragAndDrop,
+  useRemoveWithUndo,
+} from "./edit";
 
 const DEFAULT_PATH = "bookmarks-bar";
 
@@ -112,12 +118,45 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
   </svg>
 );
 
+const DeleteIcon = () => (
+  <svg viewBox="0 0 24 24" className="size-5 fill-current" aria-hidden="true">
+    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+  </svg>
+);
+
+type DragAndDrop = ReturnType<typeof useBookmarkDragAndDrop>;
+
+function dropIndicatorClass({
+  dropTarget,
+  node,
+}: {
+  dropTarget: DropTarget | null;
+  node: BookmarkNode;
+}) {
+  if (dropTarget?.id !== node.id) {
+    return undefined;
+  }
+  switch (dropTarget.position) {
+    case "before":
+      return "shadow-[inset_0_2px_0_0_var(--color-blue-500)]";
+    case "after":
+      return "shadow-[inset_0_-2px_0_0_var(--color-blue-500)]";
+    case "into":
+      return "bg-blue-100 dark:bg-blue-900/50";
+    default:
+      throw new Error(
+        `Invalid position: ${dropTarget.position satisfies never}`,
+      );
+  }
+}
+
 const FolderTreeItem = ({
   node,
   depth,
   selectedId,
   expandedIds,
   folderHrefs,
+  dnd,
   onToggle,
   onOpenFolder,
 }: {
@@ -126,6 +165,7 @@ const FolderTreeItem = ({
   selectedId: string | undefined;
   expandedIds: ReadonlySet<string>;
   folderHrefs: ReadonlyMap<string, string>;
+  dnd: DragAndDrop;
   onToggle: (id: string) => void;
   onOpenFolder: () => void;
 }) => {
@@ -141,8 +181,11 @@ const FolderTreeItem = ({
           selected
             ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200"
             : "hover:bg-gray-100 dark:hover:bg-gray-800",
+          dropIndicatorClass({ dropTarget: dnd.dropTarget, node }),
         )}
         style={{ paddingLeft: `${depth * 16 + 4}px` }}
+        {...dnd.dragProps(node)}
+        {...dnd.dropProps(node, { intoOnly: true })}
       >
         <button
           type="button"
@@ -176,6 +219,7 @@ const FolderTreeItem = ({
               selectedId={selectedId}
               expandedIds={expandedIds}
               folderHrefs={folderHrefs}
+              dnd={dnd}
               onToggle={onToggle}
               onOpenFolder={onOpenFolder}
             />
@@ -186,7 +230,7 @@ const FolderTreeItem = ({
   );
 };
 
-const BookmarkRow = ({
+const BookmarkLink = ({
   node,
   folderHrefs,
   onOpenFolder,
@@ -197,52 +241,121 @@ const BookmarkRow = ({
 }) => {
   if (isFolder(node)) {
     return (
-      <li>
-        <a
-          href={folderHrefs.get(node.id)}
-          className="flex h-10 items-center gap-4 px-5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={onOpenFolder}
-        >
-          <FolderIcon className="text-gray-500" />
-          <span className="truncate">{node.title}</span>
-        </a>
-      </li>
+      <a
+        href={folderHrefs.get(node.id)}
+        className="flex h-10 min-w-0 flex-1 items-center gap-4 pl-5 text-sm"
+        onClick={onOpenFolder}
+      >
+        <FolderIcon className="text-gray-500" />
+        <span className="truncate">{node.title}</span>
+      </a>
     );
   }
 
   const url = node.url ?? "";
   return (
-    <li>
-      <a
-        href={url}
-        className="flex h-10 items-center gap-4 px-5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-        onClick={(e) => {
-          // chrome:// etc. cannot be opened by link navigation from extension page
-          if (
-            e.button === 0 &&
-            !e.ctrlKey &&
-            !e.metaKey &&
-            !e.shiftKey &&
-            !/^https?:/.test(url)
-          ) {
-            e.preventDefault();
-            browser.tabs.update({ url });
-          }
-        }}
-      >
-        <img src={faviconUrl(url)} alt="" className="size-4 shrink-0" />
-        <span className="max-w-1/2 shrink-0 truncate">{node.title || url}</span>
-        <span className="truncate text-gray-500 dark:text-gray-400">{url}</span>
-      </a>
+    <a
+      href={url}
+      className="flex h-10 min-w-0 flex-1 items-center gap-4 pl-5 text-sm"
+      onClick={(e) => {
+        // chrome:// etc. cannot be opened by link navigation from extension page
+        if (
+          e.button === 0 &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.shiftKey &&
+          !/^https?:/.test(url)
+        ) {
+          e.preventDefault();
+          browser.tabs.update({ url });
+        }
+      }}
+    >
+      <img src={faviconUrl(url)} alt="" className="size-4 shrink-0" />
+      <span className="max-w-1/2 shrink-0 truncate">{node.title || url}</span>
+      <span className="truncate text-gray-500 dark:text-gray-400">{url}</span>
+    </a>
+  );
+};
+
+const BookmarkRow = ({
+  node,
+  folderHrefs,
+  dnd,
+  onOpenFolder,
+  onRemove,
+}: {
+  node: BookmarkNode;
+  folderHrefs: ReadonlyMap<string, string>;
+  dnd: DragAndDrop | undefined;
+  onOpenFolder: () => void;
+  onRemove: (node: BookmarkNode) => void;
+}) => {
+  return (
+    <li
+      className={cn(
+        "group flex items-center pr-2 hover:bg-gray-100 dark:hover:bg-gray-700",
+        dnd && dropIndicatorClass({ dropTarget: dnd.dropTarget, node }),
+      )}
+      {...dnd?.dragProps(node)}
+      {...dnd?.dropProps(node, { intoOnly: false })}
+    >
+      <BookmarkLink
+        node={node}
+        folderHrefs={folderHrefs}
+        onOpenFolder={onOpenFolder}
+      />
+      {isEditable(node) && (
+        <button
+          type="button"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-gray-500 opacity-40 hover:bg-gray-200 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-gray-600"
+          onClick={() => onRemove(node)}
+          aria-label="Delete"
+          title="Delete"
+        >
+          <DeleteIcon />
+        </button>
+      )}
     </li>
   );
 };
+
+const UndoToast = ({
+  removed,
+  onUndo,
+  onDismiss,
+}: {
+  removed: BookmarkNode;
+  onUndo: () => void;
+  onDismiss: () => void;
+}) => (
+  <div className="fixed bottom-6 left-6 flex items-center gap-4 rounded bg-gray-800 px-4 py-3 text-sm text-white shadow-lg dark:bg-gray-200 dark:text-gray-900">
+    <span className="max-w-80 truncate">Deleted "{removed.title}"</span>
+    <button
+      type="button"
+      className="font-medium text-blue-300 dark:text-blue-700"
+      onClick={onUndo}
+    >
+      Undo
+    </button>
+    <button
+      type="button"
+      className="text-gray-400 dark:text-gray-600"
+      onClick={onDismiss}
+      aria-label="Close"
+    >
+      ✕
+    </button>
+  </div>
+);
 
 export function App() {
   const roots = useBookmarkRoots();
   const path = useHashPath();
   const [query, setQuery] = useState("");
   const searchResults = useSearchResults(query);
+  const dnd = useBookmarkDragAndDrop(roots);
+  const { removed, remove, undo, dismiss } = useRemoveWithUndo();
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     new Set(),
   );
@@ -327,6 +440,7 @@ export function App() {
                 selectedId={query ? undefined : selectedFolder?.id}
                 expandedIds={expandedIds}
                 folderHrefs={folderHrefs}
+                dnd={dnd}
                 onToggle={toggle}
                 onOpenFolder={clearQuery}
               />
@@ -345,7 +459,10 @@ export function App() {
                   key={node.id}
                   node={node}
                   folderHrefs={folderHrefs}
+                  // reordering search results across folders is confusing
+                  dnd={query ? undefined : dnd}
                   onOpenFolder={clearQuery}
+                  onRemove={remove}
                 />
               ))}
               {roots && listItems.length === 0 && (
@@ -357,6 +474,9 @@ export function App() {
           )}
         </main>
       </div>
+      {removed && (
+        <UndoToast removed={removed} onUndo={undo} onDismiss={dismiss} />
+      )}
       <ContentApp />
     </div>
   );

@@ -14,7 +14,9 @@ export type BookmarkNode = {
   title: string;
   url?: string;
   parentId?: string;
+  index?: number;
   folderType?: string;
+  unmodifiable?: string;
   syncing?: boolean;
   children?: BookmarkNode[];
 };

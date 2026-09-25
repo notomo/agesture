@@ -8,6 +8,9 @@ export default defineConfig({
     name: "agesture",
     description: "A browser extension for mouse gestures",
     version: "0.0.1",
+    // Fix extension id (gngfpbanmokepkcpgoebgnfgpfjhijhh) for unpacked install.
+    // Only the public key is needed because the extension is not packed.
+    key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1++nsyL0wdBf6t6Pwu2GoPd3h+0rb6hyOutK4IyTDzgn/U8H7Jp4QnLfW5Y9Av2EDVEQY7CL2neL2UeviOoHZOrF01w0UPVDyUNxAfWZzadfcHriMr97odl+CUTUH9Avf2jW6UmnvoFZyS54n+ctNLLlRnMqx6VQpAqZCSRB1Ukk+GNxUKcZWKI6YT4MIqUixUkPWD3uZ3qq3HSEIf8iqXuJslB3nwD6fg3p3T3KYDbTtak37W0BLQy78lWIYJmvzda6GiGUWTjjnhszk47/CskOqTW7wlPxjqwYXQMIkPnVUn87BR1TZshChkIR4bCJtbLk/djMP1ctO8680wJDqwIDAQAB",
     permissions: [
       "storage",
       "tabs",

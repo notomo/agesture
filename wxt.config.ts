@@ -12,6 +12,7 @@ export default defineConfig({
       "storage",
       "tabs",
       "bookmarks",
+      "favicon",
       "scripting",
       "search",
       "sessions",

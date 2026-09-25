@@ -48,7 +48,7 @@ npm run dev
 # Build extension
 npm run build
 
-# Format, lint, typecheck, and test (run before commits)
+# Format, lint, typecheck, test, and e2e (run before commits)
 npm run check_all
 
 # Individual commands
@@ -56,6 +56,7 @@ npm run format     # Format code with Biome
 npm run check      # Lint with Biome
 npm run typecheck  # TypeScript type checking
 npm run test       # Run tests with Vitest
+npm run e2e        # Build and run e2e tests with Playwright
 ```
 
 ## Testing
@@ -64,3 +65,5 @@ npm run test       # Run tests with Vitest
 - Use Vitest for testing
 - Avoid mocks when possible
 - Test both individual functions and integration scenarios
+- E2E tests are in `e2e/*.spec.ts`: Playwright loads the built extension (`.output/chrome-mv3`) into Chromium
+  - Use the `background` fixture (service worker) to set up browser state such as bookmarks

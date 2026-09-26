@@ -271,6 +271,23 @@ test.describe("bookmark manager", () => {
     ).toBeVisible();
   });
 
+  test("opens folder by clicking anywhere in tree row except toggle", async ({
+    page,
+  }) => {
+    const treeRow = page
+      .locator("nav li > div")
+      .filter({ has: page.getByRole("link", { name: "work", exact: true }) });
+    const box = await treeRow.boundingBox();
+    if (!box) {
+      throw new Error("tree row is not visible");
+    }
+
+    // top edge and right end, outside of the folder name
+    await treeRow.click({ position: { x: box.width - 16, y: 2 } });
+
+    await expect(row(page, "docs")).toBeVisible();
+  });
+
   test("aligns search box center with list center", async ({ page }) => {
     const search = await page
       .getByPlaceholder(/Search bookmarks/)

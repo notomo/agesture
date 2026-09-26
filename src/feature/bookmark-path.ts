@@ -23,6 +23,8 @@ export type BookmarkNode = {
 
 const LOCAL_SUFFIX = "@local";
 
+export const DEFAULT_FOLDER_PATH = "bookmarks-bar";
+
 export function isFolder(node: BookmarkNode): boolean {
   return node.url === undefined;
 }
@@ -158,4 +160,39 @@ export function findNodeById({
     }
   }
   return undefined;
+}
+
+export type BookmarkManagerKind = "agesture" | "chrome";
+
+/**
+ * Builds URL to open the folder in bookmark manager.
+ * Chrome's bookmark manager needs folder id, so the path is resolved to the current id.
+ *
+ * @param path encoded folder path (e.g. "other/work")
+ * @param managerUrl URL of this extension's bookmark manager page
+ */
+export function buildBookmarkManagerUrl({
+  roots,
+  path,
+  manager,
+  managerUrl,
+}: {
+  roots: BookmarkNode[];
+  path: string;
+  manager: BookmarkManagerKind;
+  managerUrl: string;
+}): string | undefined {
+  switch (manager) {
+    case "agesture":
+      return `${managerUrl}#${path}`;
+    case "chrome": {
+      const folder = findFolderByPath({
+        roots,
+        segments: decodeFolderPath(path),
+      });
+      return folder ? `chrome://bookmarks/?id=${folder.id}` : undefined;
+    }
+    default:
+      throw new Error(`Invalid manager: ${manager satisfies never}`);
+  }
 }

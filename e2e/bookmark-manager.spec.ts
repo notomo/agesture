@@ -35,6 +35,16 @@ async function getChildTitles(background: Worker, parentId: string) {
   );
 }
 
+async function getChildren(background: Worker, parentId: string) {
+  return await background.evaluate(
+    async (id) =>
+      (await chrome.bookmarks.getChildren(id)).map(({ title, url }) =>
+        url === undefined ? { title } : { title, url },
+      ),
+    parentId,
+  );
+}
+
 function row(page: Page, title: string) {
   return page
     .locator("main li")
@@ -121,8 +131,9 @@ test.describe("bookmark manager", () => {
       .toEqual(["work", "a", "c", "d"]);
   });
 
-  test("deletes and undoes", async ({ page, background }) => {
-    await row(page, "c").getByRole("button", { name: "Delete" }).click();
+  test("deletes from menu and undoes", async ({ page, background }) => {
+    await row(page, "c").getByRole("button", { name: "More actions" }).click();
+    await page.getByRole("menuitem", { name: "Delete" }).click();
 
     await expect(page.getByText('Deleted "c"')).toBeVisible();
     await expect
@@ -134,5 +145,142 @@ test.describe("bookmark manager", () => {
     await expect
       .poll(() => getChildTitles(background, barId))
       .toEqual(["work", "a", "b", "c", "d"]);
+  });
+
+  test("edits from menu", async ({ page, background }) => {
+    await row(page, "a").getByRole("button", { name: "More actions" }).click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Edit bookmark" });
+    await dialog.getByLabel("Name").fill("renamed");
+    await dialog.getByLabel("URL").fill("example.com/renamed");
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect
+      .poll(() => getChildren(background, barId))
+      .toContainEqual({ title: "renamed", url: "https://example.com/renamed" });
+  });
+
+  test("adds bookmark and folder", async ({ page, background }) => {
+    await page.getByRole("button", { name: "Add bookmark" }).click();
+    const bookmarkDialog = page.getByRole("dialog", { name: "Add bookmark" });
+    await bookmarkDialog.getByLabel("Name").fill("new");
+    await bookmarkDialog.getByLabel("URL").fill("example.com/new");
+    await bookmarkDialog.getByRole("button", { name: "Save" }).click();
+    await expect(bookmarkDialog).toBeHidden();
+
+    await page.getByRole("button", { name: "Add folder" }).click();
+    const folderDialog = page.getByRole("dialog", { name: "Add folder" });
+    await expect(folderDialog.getByLabel("URL")).toHaveCount(0);
+    await folderDialog.getByLabel("Name").fill("new folder");
+    await folderDialog.getByRole("button", { name: "Save" }).click();
+    await expect(folderDialog).toBeHidden();
+
+    await expect
+      .poll(async () => (await getChildren(background, barId)).slice(-2))
+      .toEqual([
+        { title: "new", url: "https://example.com/new" },
+        { title: "new folder" },
+      ]);
+    await expect(row(page, "new folder")).toBeVisible();
+  });
+
+  test("selects by rect and deletes by keyboard", async ({
+    page,
+    background,
+  }) => {
+    const list = await page.locator("main ul").boundingBox();
+    const b = await row(page, "b").boundingBox();
+    if (!list || !b) {
+      throw new Error("list is not visible");
+    }
+    // drag from empty area below the list up to "b"
+    await page.mouse.move(list.x + list.width / 2, list.y + list.height + 40);
+    await page.mouse.down();
+    await page.mouse.move(list.x + list.width / 3, b.y + b.height / 2, {
+      steps: 5,
+    });
+    await page.mouse.up();
+
+    await expect(page.locator('main li[data-selected="true"]')).toHaveCount(3);
+
+    await page.keyboard.press("Delete");
+
+    await expect(page.getByText("Deleted 3 items")).toBeVisible();
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "a"]);
+
+    await page.keyboard.press("Control+z");
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "a", "b", "c", "d"]);
+  });
+
+  test("moves selected bookmarks together", async ({ page, background }) => {
+    const list = await page.locator("main ul").boundingBox();
+    const c = await row(page, "c").boundingBox();
+    if (!list || !c) {
+      throw new Error("list is not visible");
+    }
+    await page.mouse.move(list.x + list.width / 2, list.y + list.height + 40);
+    await page.mouse.down();
+    await page.mouse.move(list.x + list.width / 3, c.y + c.height / 2, {
+      steps: 5,
+    });
+    await page.mouse.up();
+    await expect(page.locator('main li[data-selected="true"]')).toHaveCount(2);
+
+    await dragTo({
+      source: row(page, "d"),
+      target: row(page, "work"),
+      ratio: 0.5,
+    });
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "a", "b"]);
+    await row(page, "work").getByRole("link").click();
+    await expect(row(page, "c")).toBeVisible();
+    await expect(row(page, "d")).toBeVisible();
+  });
+
+  test("selects all and clears selection by keyboard", async ({ page }) => {
+    const selected = page.locator('main li[data-selected="true"]');
+
+    await page.keyboard.press("Control+a");
+    await expect(selected).toHaveCount(5);
+
+    await page.keyboard.press("Escape");
+    await expect(selected).toHaveCount(0);
+  });
+
+  test("focuses search by slash", async ({ page }) => {
+    await page.keyboard.press("/");
+    await page.keyboard.type("docs");
+
+    await expect(row(page, "docs")).toBeVisible();
+    await expect(row(page, "a")).toBeHidden();
+  });
+
+  test("shows shallow folders in tree by default", async ({ page }) => {
+    await expect(
+      page.locator("nav").getByRole("link", { name: "work" }),
+    ).toBeVisible();
+  });
+
+  test("aligns search box center with list center", async ({ page }) => {
+    const search = await page
+      .getByPlaceholder(/Search bookmarks/)
+      .boundingBox();
+    const list = await page.locator("main ul").boundingBox();
+    if (!search || !list) {
+      throw new Error("not visible");
+    }
+    expect(
+      Math.abs(search.x + search.width / 2 - (list.x + list.width / 2)),
+    ).toBeLessThanOrEqual(1);
   });
 });

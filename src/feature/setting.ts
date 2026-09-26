@@ -97,8 +97,8 @@ export const DEFAULT_SETTING: Setting = {
             {
               label: "Bookmarks",
               action: {
-                name: "openUrl",
-                args: { url: "chrome://bookmarks/?id=2" },
+                name: "openBookmarkManager",
+                args: { path: "other", manager: "agesture" },
               },
             },
             {

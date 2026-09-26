@@ -118,3 +118,57 @@ export async function restoreBookmark(node: BookmarkNode): Promise<void> {
     await restoreBookmark({ ...child, parentId: created.id });
   }
 }
+
+/**
+ * Restores removed nodes in ascending index order so that each index is valid when recreated.
+ */
+export async function restoreBookmarks(nodes: BookmarkNode[]): Promise<void> {
+  for (const node of sortForRestore(nodes)) {
+    await restoreBookmark(node);
+  }
+}
+
+export function sortForRestore(nodes: BookmarkNode[]): BookmarkNode[] {
+  return nodes.toSorted((a, b) => (a.index ?? 0) - (b.index ?? 0));
+}
+
+/**
+ * Moves nodes keeping the given order.
+ * The 2nd and later nodes are placed after the previously moved node.
+ */
+export async function moveBookmarks({
+  ids,
+  destination,
+}: {
+  ids: string[];
+  destination: MoveDestination;
+}): Promise<void> {
+  let previousId: string | undefined;
+  for (const id of ids) {
+    let index = destination.index;
+    if (previousId !== undefined && index !== undefined) {
+      const [previous] = await browser.bookmarks.get(previousId);
+      index = (previous?.index ?? 0) + 1;
+    }
+    await browser.bookmarks.move(id, { parentId: destination.parentId, index });
+    previousId = id;
+  }
+}
+
+/**
+ * Accepts URL without scheme like "example.com" as https.
+ */
+export function normalizeUrl(input: string): string | undefined {
+  const trimmed = input.trim();
+  if (trimmed === "") {
+    return undefined;
+  }
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  try {
+    return new URL(withScheme).toString();
+  } catch {
+    return undefined;
+  }
+}

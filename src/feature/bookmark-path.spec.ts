@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   type BookmarkNode,
+  buildBookmarkManagerUrl,
   buildFolderPath,
   decodeFolderPath,
   encodeFolderPath,
@@ -88,5 +89,42 @@ describe("buildFolderPath", () => {
     expect(path).toBe("other@local/work/a%2Fb");
     const got = findFolderByPath({ roots, segments: decodeFolderPath(path) });
     expect(got?.id).toBe("13");
+  });
+});
+
+describe("buildBookmarkManagerUrl", () => {
+  const managerUrl = "chrome-extension://id/bookmark-manager.html";
+
+  it("opens this extension's manager by path", () => {
+    expect(
+      buildBookmarkManagerUrl({
+        roots,
+        path: "other/work",
+        manager: "agesture",
+        managerUrl,
+      }),
+    ).toBe(`${managerUrl}#other/work`);
+  });
+
+  it("opens chrome's manager by current folder id resolved from path", () => {
+    expect(
+      buildBookmarkManagerUrl({
+        roots,
+        path: "other@local/work/a%2Fb",
+        manager: "chrome",
+        managerUrl,
+      }),
+    ).toBe("chrome://bookmarks/?id=13");
+  });
+
+  it("returns undefined if chrome's manager folder is not found", () => {
+    expect(
+      buildBookmarkManagerUrl({
+        roots,
+        path: "other/notfound",
+        manager: "chrome",
+        managerUrl,
+      }),
+    ).toBeUndefined();
   });
 });

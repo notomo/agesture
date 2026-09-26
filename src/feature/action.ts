@@ -17,6 +17,7 @@ import {
   union,
 } from "valibot";
 import { type ActionContext, buildActionContext } from "./action-context";
+import { buildBookmarkManagerUrl, DEFAULT_FOLDER_PATH } from "./bookmark-path";
 
 async function getWindowIds(): Promise<number[]> {
   const allWindows = await browser.windows.getAll();
@@ -307,6 +308,7 @@ const ActionNameSchema = union([
   literal("openUrl"),
   literal("piemenu"),
   literal("maximizeWindow"),
+  literal("openBookmarkManager"),
 ]);
 
 const BookmarkActionSchema = object({
@@ -364,11 +366,56 @@ const MaximizeWindowActionSchema = object({
   }),
 });
 
+const OpenBookmarkManagerActionSchema = object({
+  name: literal("openBookmarkManager"),
+  args: optional(
+    object({
+      // folder path such as "other/work" (same as the hash of bookmark manager URL)
+      path: optional(string(), DEFAULT_FOLDER_PATH),
+      manager: optional(
+        union([literal("agesture"), literal("chrome")]),
+        "agesture",
+      ),
+    }),
+    {},
+  ),
+});
+type OpenBookmarkManagerActionArgs = InferOutput<
+  typeof OpenBookmarkManagerActionSchema
+>["args"];
+
+async function openBookmarkManagerAction({
+  getCurrentTab,
+  path,
+  manager,
+}: ActionContext & OpenBookmarkManagerActionArgs) {
+  const [root] = await browser.bookmarks.getTree();
+  const url = buildBookmarkManagerUrl({
+    roots: root?.children ?? [],
+    path,
+    manager,
+    managerUrl: browser.runtime.getURL("/bookmark-manager.html"),
+  });
+  if (!url) {
+    return {
+      type: "message",
+      message: { info: `Bookmark folder not found: ${path}` },
+    } as const;
+  }
+
+  const tab = await getCurrentTab();
+  await browser.tabs.create({
+    url,
+    index: tab.index + 1,
+  });
+}
+
 const GestureActionWithoutPiemenuSchema = union([
   BookmarkActionSchema,
   OpenLinkActionSchema,
   OpenUrlActionSchema,
   MaximizeWindowActionSchema,
+  OpenBookmarkManagerActionSchema,
   object({
     name: NoArgsActionNameSchema,
   }),
@@ -483,6 +530,7 @@ const actions = {
   doNothing: doNothingAction,
   openLink: openLinkAction,
   openUrl: openUrlAction,
+  openBookmarkManager: openBookmarkManagerAction,
   piemenu: piemenuAction,
 } as const satisfies Record<ActionName, unknown> satisfies Record<
   GestureAction["name"],
@@ -537,6 +585,12 @@ async function callAction({
   }
 
   if (actionName === "maximizeWindow") {
+    const action = actions[actionName];
+    const result = await action({ ...context, ...gestureAction.args });
+    return buildResult({ actionName, result: result ?? undefined });
+  }
+
+  if (actionName === "openBookmarkManager") {
     const action = actions[actionName];
     const result = await action({ ...context, ...gestureAction.args });
     return buildResult({ actionName, result: result ?? undefined });

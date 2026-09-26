@@ -6,43 +6,63 @@ import {
   type DropPosition,
   getDropPosition,
   isEditable,
-  restoreBookmark,
+  moveBookmarks,
+  restoreBookmarks,
 } from "@/src/feature/bookmark-edit";
-import { type BookmarkNode, isFolder } from "@/src/feature/bookmark-path";
+import {
+  type BookmarkNode,
+  findNodeById,
+  isFolder,
+} from "@/src/feature/bookmark-path";
 
 export type DropTarget = {
   id: string;
   position: DropPosition;
 };
 
-export function useBookmarkDragAndDrop(roots: BookmarkNode[] | null) {
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+/**
+ * @param getDragIds returns ids moved together when the node is dragged (e.g. selected nodes)
+ */
+export function useBookmarkDragAndDrop({
+  roots,
+  getDragIds,
+}: {
+  roots: BookmarkNode[] | null;
+  getDragIds: (node: BookmarkNode) => string[];
+}) {
+  const [draggingIds, setDraggingIds] = useState<string[]>([]);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
   const resolveDestination = useCallback(
     (target: BookmarkNode, position: DropPosition) => {
-      if (!roots || !draggingId || target.id === draggingId) {
+      if (
+        !roots ||
+        draggingIds.length === 0 ||
+        draggingIds.includes(target.id)
+      ) {
         return undefined;
       }
       const destination = buildMoveDestination({ target, position });
       if (
         !destination ||
-        !canMove({ roots, sourceId: draggingId, destination })
+        !draggingIds.every((sourceId) =>
+          canMove({ roots, sourceId, destination }),
+        )
       ) {
         return undefined;
       }
       return destination;
     },
-    [roots, draggingId],
+    [roots, draggingIds],
   );
 
   const reset = useCallback(() => {
-    setDraggingId(null);
+    setDraggingIds([]);
     setDropTarget(null);
   }, []);
 
   const dragProps = useCallback(
-    (node: BookmarkNode) => {
+    (node: BookmarkNode, { single }: { single: boolean }) => {
       if (!isEditable(node)) {
         return {};
       }
@@ -50,12 +70,12 @@ export function useBookmarkDragAndDrop(roots: BookmarkNode[] | null) {
         draggable: true,
         onDragStart: (e: React.DragEvent) => {
           e.dataTransfer.effectAllowed = "move";
-          setDraggingId(node.id);
+          setDraggingIds(single ? [node.id] : getDragIds(node));
         },
         onDragEnd: reset,
       };
     },
-    [reset],
+    [reset, getDragIds],
   );
 
   const dropProps = useCallback(
@@ -93,17 +113,18 @@ export function useBookmarkDragAndDrop(roots: BookmarkNode[] | null) {
         },
         onDrop: async (e: React.DragEvent) => {
           const destination = resolveDestination(node, getPosition(e));
-          if (!draggingId || !destination) {
+          if (!destination) {
             return;
           }
           e.preventDefault();
           e.stopPropagation();
+          const ids = draggingIds;
           reset();
-          await browser.bookmarks.move(draggingId, destination);
+          await moveBookmarks({ ids, destination });
         },
       };
     },
-    [resolveDestination, draggingId, reset],
+    [resolveDestination, draggingIds, reset],
   );
 
   return { dropTarget, dragProps, dropProps };
@@ -112,38 +133,56 @@ export function useBookmarkDragAndDrop(roots: BookmarkNode[] | null) {
 const UNDO_TIMEOUT_MS = 10000;
 
 export function useRemoveWithUndo() {
-  const [removed, setRemoved] = useState<BookmarkNode | null>(null);
+  const [removed, setRemoved] = useState<BookmarkNode[]>([]);
 
   useEffect(() => {
-    if (!removed) {
+    if (removed.length === 0) {
       return;
     }
-    const timer = setTimeout(() => setRemoved(null), UNDO_TIMEOUT_MS);
+    const timer = setTimeout(() => setRemoved([]), UNDO_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [removed]);
 
-  const remove = useCallback(async (node: BookmarkNode) => {
-    const subtree = (await browser.bookmarks.getSubTree(node.id)).at(0);
-    if (!subtree) {
-      return;
+  const remove = useCallback(async (nodes: BookmarkNode[]) => {
+    // get all before removing so that indexes for undo are not shifted by removal
+    const subtrees: BookmarkNode[] = [];
+    for (const node of nodes.filter(isEditable)) {
+      const subtree = (await browser.bookmarks.getSubTree(node.id)).at(0);
+      if (subtree) {
+        subtrees.push(subtree);
+      }
     }
-    if (isFolder(subtree)) {
-      await browser.bookmarks.removeTree(subtree.id);
-    } else {
-      await browser.bookmarks.remove(subtree.id);
+    // descendants are removed and restored with their ancestor (e.g. both selected in search results)
+    const topLevels = subtrees.filter(
+      (subtree) =>
+        !subtrees.some(
+          (other) =>
+            other !== subtree &&
+            findNodeById({ roots: other.children ?? [], nodeId: subtree.id }),
+        ),
+    );
+
+    for (const subtree of topLevels) {
+      if (isFolder(subtree)) {
+        await browser.bookmarks.removeTree(subtree.id);
+      } else {
+        await browser.bookmarks.remove(subtree.id);
+      }
     }
-    setRemoved(subtree);
+    if (topLevels.length > 0) {
+      setRemoved(topLevels);
+    }
   }, []);
 
   const undo = useCallback(async () => {
-    if (!removed) {
+    if (removed.length === 0) {
       return;
     }
-    setRemoved(null);
-    await restoreBookmark(removed);
+    setRemoved([]);
+    await restoreBookmarks(removed);
   }, [removed]);
 
-  const dismiss = useCallback(() => setRemoved(null), []);
+  const dismiss = useCallback(() => setRemoved([]), []);
 
   return { removed, remove, undo, dismiss };
 }

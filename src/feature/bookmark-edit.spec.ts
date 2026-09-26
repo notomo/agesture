@@ -3,6 +3,8 @@ import {
   buildMoveDestination,
   canMove,
   getDropPosition,
+  normalizeUrl,
+  sortForRestore,
 } from "./bookmark-edit";
 import type { BookmarkNode } from "./bookmark-path";
 
@@ -108,5 +110,34 @@ describe("canMove", () => {
     expect(
       canMove({ roots, sourceId: "20", destination: { parentId: "30" } }),
     ).toBe(false);
+  });
+});
+
+describe("sortForRestore", () => {
+  it("sorts by index ascending", () => {
+    const got = sortForRestore([
+      { id: "a", title: "a", index: 3 },
+      { id: "b", title: "b", index: 1 },
+      { id: "c", title: "c", index: 2 },
+    ]);
+    expect(got.map((x) => x.id)).toEqual(["b", "c", "a"]);
+  });
+});
+
+describe("normalizeUrl", () => {
+  it("keeps URL with scheme", () => {
+    expect(normalizeUrl(" https://example.com/a ")).toBe(
+      "https://example.com/a",
+    );
+    expect(normalizeUrl("chrome://settings")).toBe("chrome://settings");
+  });
+
+  it("adds https to URL without scheme", () => {
+    expect(normalizeUrl("example.com")).toBe("https://example.com/");
+  });
+
+  it("returns undefined for empty or invalid input", () => {
+    expect(normalizeUrl("  ")).toBeUndefined();
+    expect(normalizeUrl("exa mple.com")).toBeUndefined();
   });
 });

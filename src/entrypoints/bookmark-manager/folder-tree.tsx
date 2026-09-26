@@ -74,7 +74,7 @@ export const FolderTreeItem = ({
             childFolders.length === 0 && "invisible",
           )}
           onClick={() => onToggle(node.id)}
-          aria-label={expanded ? "Collapse" : "Expand"}
+          aria-label={`${expanded ? "Collapse" : "Expand"} ${node.title}`}
         >
           <ChevronIcon expanded={expanded} />
         </button>

@@ -45,10 +45,24 @@ async function getChildren(background: Worker, parentId: string) {
   );
 }
 
+function bookmarkList(page: Page) {
+  return page.getByRole("list", { name: "Bookmarks" });
+}
+
 function row(page: Page, title: string) {
-  return page
-    .locator("main li")
+  return bookmarkList(page)
+    .getByRole("listitem")
     .filter({ has: page.getByText(title, { exact: true }) });
+}
+
+function selectedRows(page: Page) {
+  return bookmarkList(page).locator('[data-selected="true"]');
+}
+
+function treeFolder(page: Page, title: string) {
+  return page
+    .getByRole("navigation", { name: "Folders" })
+    .getByRole("link", { name: title, exact: true });
 }
 
 async function dragTo({
@@ -190,7 +204,7 @@ test.describe("bookmark manager", () => {
     page,
     background,
   }) => {
-    const list = await page.locator("main ul").boundingBox();
+    const list = await bookmarkList(page).boundingBox();
     const b = await row(page, "b").boundingBox();
     if (!list || !b) {
       throw new Error("list is not visible");
@@ -203,7 +217,7 @@ test.describe("bookmark manager", () => {
     });
     await page.mouse.up();
 
-    await expect(page.locator('main li[data-selected="true"]')).toHaveCount(3);
+    await expect(selectedRows(page)).toHaveCount(3);
 
     await page.keyboard.press("Delete");
 
@@ -220,7 +234,7 @@ test.describe("bookmark manager", () => {
   });
 
   test("moves selected bookmarks together", async ({ page, background }) => {
-    const list = await page.locator("main ul").boundingBox();
+    const list = await bookmarkList(page).boundingBox();
     const c = await row(page, "c").boundingBox();
     if (!list || !c) {
       throw new Error("list is not visible");
@@ -231,7 +245,7 @@ test.describe("bookmark manager", () => {
       steps: 5,
     });
     await page.mouse.up();
-    await expect(page.locator('main li[data-selected="true"]')).toHaveCount(2);
+    await expect(selectedRows(page)).toHaveCount(2);
 
     await dragTo({
       source: row(page, "d"),
@@ -248,7 +262,7 @@ test.describe("bookmark manager", () => {
   });
 
   test("selects all and clears selection by keyboard", async ({ page }) => {
-    const selected = page.locator('main li[data-selected="true"]');
+    const selected = selectedRows(page);
 
     await page.keyboard.press("Control+a");
     await expect(selected).toHaveCount(5);
@@ -266,17 +280,20 @@ test.describe("bookmark manager", () => {
   });
 
   test("shows shallow folders in tree by default", async ({ page }) => {
-    await expect(
-      page.locator("nav").getByRole("link", { name: "work" }),
-    ).toBeVisible();
+    await expect(treeFolder(page, "work")).toBeVisible();
   });
 
   test("opens folder by clicking anywhere in tree row except toggle", async ({
     page,
   }) => {
+    // "work" has no child folders, so its list item has no nested list and is just the row
     const treeRow = page
-      .locator("nav li > div")
-      .filter({ has: page.getByRole("link", { name: "work", exact: true }) });
+      .getByRole("navigation", { name: "Folders" })
+      .getByRole("listitem")
+      .filter({
+        has: page.getByRole("link", { name: "work", exact: true }),
+        hasNot: page.getByRole("list"),
+      });
     const box = await treeRow.boundingBox();
     if (!box) {
       throw new Error("tree row is not visible");
@@ -289,21 +306,20 @@ test.describe("bookmark manager", () => {
   });
 
   test("toggles tree folder by double click", async ({ page }) => {
-    const nav = page.locator("nav");
-    const barRow = nav
-      .locator("li > div")
-      .filter({ has: page.getByRole("link", { name: "Bookmarks bar" }) });
-    const work = nav.getByRole("link", { name: "work", exact: true });
+    const bar = treeFolder(page, "Bookmarks bar");
+    const work = treeFolder(page, "work");
     await expect(work).toBeVisible();
 
-    await barRow.dblclick();
+    await bar.dblclick();
     await expect(work).toBeHidden();
 
-    await barRow.dblclick();
+    await bar.dblclick();
     await expect(work).toBeVisible();
 
     // double click on toggle button toggles only by its clicks
-    await barRow.getByRole("button", { name: "Collapse" }).dblclick();
+    await page
+      .getByRole("button", { name: "Collapse Bookmarks bar" })
+      .dblclick();
     await expect(work).toBeVisible();
   });
 
@@ -311,7 +327,7 @@ test.describe("bookmark manager", () => {
     const search = await page
       .getByPlaceholder(/Search bookmarks/)
       .boundingBox();
-    const list = await page.locator("main ul").boundingBox();
+    const list = await bookmarkList(page).boundingBox();
     if (!search || !list) {
       throw new Error("not visible");
     }

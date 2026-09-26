@@ -230,7 +230,10 @@ export function App() {
         </div>
       </header>
       <div className="flex min-h-0 flex-1">
-        <nav className="w-64 shrink-0 overflow-y-auto py-2 pr-2">
+        <nav
+          aria-label="Folders"
+          className="w-64 shrink-0 overflow-y-auto py-2 pr-2"
+        >
           <ul>
             {roots?.map((root) => (
               <FolderTreeItem
@@ -287,7 +290,10 @@ export function App() {
                   </>
                 )}
               </div>
-              <ul className="rounded-lg bg-white py-2 shadow dark:bg-gray-800">
+              <ul
+                aria-label="Bookmarks"
+                className="rounded-lg bg-white py-2 shadow dark:bg-gray-800"
+              >
                 {listItems.map((node) => (
                   <BookmarkRow
                     key={node.id}

@@ -56,7 +56,8 @@ export const FolderTreeItem = ({
     <li>
       <div
         className={cn(
-          "flex h-9 items-center rounded-r-full text-sm",
+          // select-none: not to select title text by double click
+          "flex h-9 select-none items-center rounded-r-full text-sm",
           selected
             ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200"
             : "hover:bg-gray-100 dark:hover:bg-gray-800",
@@ -82,6 +83,11 @@ export const FolderTreeItem = ({
           // fill the row so that the whole highlighted area is clickable
           className="flex h-full min-w-0 flex-1 items-center gap-3 pr-3 pl-2"
           onClick={onOpenFolder}
+          onDoubleClick={() => {
+            if (childFolders.length > 0) {
+              onToggle(node.id);
+            }
+          }}
         >
           <FolderIcon
             className={selected ? "text-blue-600" : "text-gray-500"}

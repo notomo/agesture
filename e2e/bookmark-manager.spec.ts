@@ -288,6 +288,25 @@ test.describe("bookmark manager", () => {
     await expect(row(page, "docs")).toBeVisible();
   });
 
+  test("toggles tree folder by double click", async ({ page }) => {
+    const nav = page.locator("nav");
+    const barRow = nav
+      .locator("li > div")
+      .filter({ has: page.getByRole("link", { name: "Bookmarks bar" }) });
+    const work = nav.getByRole("link", { name: "work", exact: true });
+    await expect(work).toBeVisible();
+
+    await barRow.dblclick();
+    await expect(work).toBeHidden();
+
+    await barRow.dblclick();
+    await expect(work).toBeVisible();
+
+    // double click on toggle button toggles only by its clicks
+    await barRow.getByRole("button", { name: "Collapse" }).dblclick();
+    await expect(work).toBeVisible();
+  });
+
   test("aligns search box center with list center", async ({ page }) => {
     const search = await page
       .getByPlaceholder(/Search bookmarks/)

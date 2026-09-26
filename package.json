@@ -18,7 +18,7 @@
     "deploy_for_local": "npm run build && mkdir -p $AGESTURE_LOCAL && cp -rf ./.output/chrome-mv3/* $AGESTURE_LOCAL"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.13",
+    "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",

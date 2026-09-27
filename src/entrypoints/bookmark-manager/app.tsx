@@ -7,13 +7,14 @@ import {
   findFolderByPath,
   findNodeById,
 } from "@/src/feature/bookmark-path";
+import { cn } from "@/src/lib/tailwind";
 import { App as ContentApp } from "../content/app";
 import { BookmarkRow, UndoToast } from "./bookmark-list";
 import { useBookmarkDragAndDrop, useRemoveWithUndo } from "./edit";
 import { EditDialog, type EditTarget } from "./edit-dialog";
 import { FolderTreeItem } from "./folder-tree";
 import { useBookmarkRoots, useHashPath, useSearchResults } from "./hooks";
-import { AddIcon } from "./icons";
+import { AddIcon, DeleteIcon } from "./icons";
 import { SelectionRect, useRectSelection } from "./selection";
 
 function isTextInput(target: EventTarget | null) {
@@ -193,6 +194,13 @@ export function App() {
     [],
   );
 
+  const removeSelected = useCallback(() => {
+    if (selectedNodes.length > 0) {
+      setSelectedIds(EMPTY_SELECTION);
+      remove(selectedNodes);
+    }
+  }, [selectedNodes, remove]);
+
   useKeyboardShortcuts({
     searchRef,
     onClearSearch: clearQuery,
@@ -201,12 +209,7 @@ export function App() {
       [listItems],
     ),
     onClearSelection: useCallback(() => setSelectedIds(EMPTY_SELECTION), []),
-    onRemoveSelected: useCallback(() => {
-      if (selectedNodes.length > 0) {
-        setSelectedIds(EMPTY_SELECTION);
-        remove(selectedNodes);
-      }
-    }, [selectedNodes, remove]),
+    onRemoveSelected: removeSelected,
     onUndo: undo,
   });
 
@@ -267,9 +270,18 @@ export function App() {
                     ? `Search results for "${query}"`
                     : selectedFolder?.title}
                 </h2>
+                {selectedNodes.length > 0 && (
+                  <HeaderButton
+                    icon={<DeleteIcon />}
+                    label={`Delete (${selectedNodes.length})`}
+                    onClick={removeSelected}
+                    className="text-red-600 hover:bg-red-50 dark:text-red-400"
+                  />
+                )}
                 {canAdd && (
                   <>
-                    <AddButton
+                    <HeaderButton
+                      icon={<AddIcon />}
                       label="Add bookmark"
                       onClick={() =>
                         setEditTarget({
@@ -278,7 +290,8 @@ export function App() {
                         })
                       }
                     />
-                    <AddButton
+                    <HeaderButton
+                      icon={<AddIcon />}
                       label="Add folder"
                       onClick={() =>
                         setEditTarget({
@@ -329,19 +342,26 @@ export function App() {
   );
 }
 
-const AddButton = ({
+const HeaderButton = ({
+  icon,
   label,
   onClick,
+  className,
 }: {
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  className?: string;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center gap-1 rounded-full px-3 py-1 text-blue-600 text-sm hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
+    className={cn(
+      "flex items-center gap-1 rounded-full px-3 py-1 text-blue-600 text-sm hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800",
+      className,
+    )}
   >
-    <AddIcon />
+    {icon}
     {label}
   </button>
 );

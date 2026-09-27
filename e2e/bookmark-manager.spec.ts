@@ -233,6 +233,18 @@ test.describe("bookmark manager", () => {
       .toEqual(["work", "a", "b", "c", "d"]);
   });
 
+  test("deletes selected bookmarks by button", async ({ page, background }) => {
+    const deleteButton = page.getByRole("button", { name: /^Delete/ });
+    await expect(deleteButton).toBeHidden();
+
+    await page.keyboard.press("Control+a");
+    await deleteButton.click();
+
+    await expect(page.getByText("Deleted 5 items")).toBeVisible();
+    await expect.poll(() => getChildTitles(background, barId)).toEqual([]);
+    await expect(deleteButton).toBeHidden();
+  });
+
   test("moves selected bookmarks together", async ({ page, background }) => {
     const list = await bookmarkList(page).boundingBox();
     const c = await row(page, "c").boundingBox();

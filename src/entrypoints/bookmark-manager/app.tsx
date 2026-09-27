@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isEditable } from "@/src/feature/bookmark-edit";
 import {
   type BookmarkNode,
   buildFolderPaths,
@@ -7,15 +8,21 @@ import {
   findFolderByPath,
   findNodeById,
 } from "@/src/feature/bookmark-path";
+import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { App as ContentApp } from "../content/app";
-import { BookmarkRow, UndoToast } from "./bookmark-list";
+import { BookmarkMenuItems, BookmarkRow, UndoToast } from "./bookmark-list";
 import { useBookmarkDragAndDrop, useRemoveWithUndo } from "./edit";
 import { EditDialog, type EditTarget } from "./edit-dialog";
 import { FolderTreeItem } from "./folder-tree";
 import { useBookmarkRoots, useHashPath, useSearchResults } from "./hooks";
 import { AddIcon, DeleteIcon } from "./icons";
-import { SelectionRect, useRectSelection } from "./selection";
+import { ContextMenu, MenuItem } from "./menu";
+import {
+  BOOKMARK_ID_ATTRIBUTE,
+  SelectionRect,
+  useRectSelection,
+} from "./selection";
 
 function isTextInput(target: EventTarget | null) {
   return (
@@ -77,6 +84,75 @@ function useKeyboardShortcuts({
     onRemoveSelected,
     onUndo,
   ]);
+}
+
+type ContextMenuTarget = {
+  position: Point;
+  // undefined: outside of rows
+  node: BookmarkNode | undefined;
+};
+
+/**
+ * Replaces the native context menu in the container.
+ * The menu is opened by `open` on right click without gesture
+ * because contextmenu event timing differs by platform (mousedown or mouseup).
+ */
+function useContextMenu({
+  containerRef,
+  findNode,
+  canAdd,
+}: {
+  containerRef: React.RefObject<HTMLElement | null>;
+  findNode: (id: string) => BookmarkNode | undefined;
+  canAdd: boolean;
+}) {
+  const [target, setTarget] = useState<ContextMenuTarget | null>(null);
+
+  // returns null if the native context menu should be used
+  const resolveNode = useCallback(
+    (eventTarget: EventTarget | null) => {
+      if (
+        !(eventTarget instanceof Element) ||
+        isTextInput(eventTarget) ||
+        !containerRef.current?.contains(eventTarget)
+      ) {
+        return null;
+      }
+      const id = eventTarget
+        .closest(`[${BOOKMARK_ID_ATTRIBUTE}]`)
+        ?.getAttribute(BOOKMARK_ID_ATTRIBUTE);
+      const node = id ? findNode(id) : undefined;
+      if (node ? !isEditable(node) : !canAdd) {
+        return null;
+      }
+      return { node };
+    },
+    [containerRef, findNode, canAdd],
+  );
+
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      if (resolveNode(e.target)) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => document.removeEventListener("contextmenu", handleContextMenu);
+  }, [resolveNode]);
+
+  const open = useCallback(
+    (e: MouseEvent) => {
+      const resolved = resolveNode(e.target);
+      if (resolved) {
+        setTarget({ position: { x: e.clientX, y: e.clientY }, ...resolved });
+      }
+    },
+    [resolveNode],
+  );
+
+  const close = useCallback(() => setTarget(null), []);
+
+  return { target, open, close };
 }
 
 const EMPTY_SELECTION: ReadonlySet<string> = new Set();
@@ -213,8 +289,30 @@ export function App() {
     onUndo: undo,
   });
 
-  const canAdd =
-    !query && selectedFolder && selectedFolder.unmodifiable === undefined;
+  const addParentId =
+    !query && selectedFolder && selectedFolder.unmodifiable === undefined
+      ? selectedFolder.id
+      : undefined;
+  const addBookmark = useCallback(() => {
+    if (addParentId) {
+      setEditTarget({ type: "addBookmark", parentId: addParentId });
+    }
+  }, [addParentId]);
+  const addFolder = useCallback(() => {
+    if (addParentId) {
+      setEditTarget({ type: "addFolder", parentId: addParentId });
+    }
+  }, [addParentId]);
+
+  const mainRef = useRef<HTMLElement>(null);
+  const contextMenu = useContextMenu({
+    containerRef: mainRef,
+    findNode: useCallback(
+      (id: string) => listItems.find((x) => x.id === id),
+      [listItems],
+    ),
+    canAdd: addParentId !== undefined,
+  });
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -255,6 +353,7 @@ export function App() {
         </nav>
         {/* both-edges gutter keeps the list centered same as search box even with scrollbar */}
         <main
+          ref={mainRef}
           className="min-w-0 flex-1 select-none overflow-y-auto p-4 [scrollbar-gutter:stable_both-edges]"
           onMouseDown={rectSelection.onMouseDown}
         >
@@ -278,27 +377,17 @@ export function App() {
                     className="text-red-600 hover:bg-red-50 dark:text-red-400"
                   />
                 )}
-                {canAdd && (
+                {addParentId && (
                   <>
                     <HeaderButton
                       icon={<AddIcon />}
                       label="Add bookmark"
-                      onClick={() =>
-                        setEditTarget({
-                          type: "addBookmark",
-                          parentId: selectedFolder.id,
-                        })
-                      }
+                      onClick={addBookmark}
                     />
                     <HeaderButton
                       icon={<AddIcon />}
                       label="Add folder"
-                      onClick={() =>
-                        setEditTarget({
-                          type: "addFolder",
-                          parentId: selectedFolder.id,
-                        })
-                      }
+                      onClick={addFolder}
                     />
                   </>
                 )}
@@ -331,13 +420,45 @@ export function App() {
         </main>
       </div>
       {rectSelection.rect && <SelectionRect rect={rectSelection.rect} />}
+      {contextMenu.target && (
+        <ContextMenu
+          position={contextMenu.target.position}
+          onClose={contextMenu.close}
+        >
+          {contextMenu.target.node ? (
+            <BookmarkMenuItems
+              node={contextMenu.target.node}
+              onEdit={openEdit}
+              onRemove={removeOne}
+              onClose={contextMenu.close}
+            />
+          ) : (
+            <>
+              <MenuItem
+                label="Add bookmark"
+                onClick={() => {
+                  contextMenu.close();
+                  addBookmark();
+                }}
+              />
+              <MenuItem
+                label="Add folder"
+                onClick={() => {
+                  contextMenu.close();
+                  addFolder();
+                }}
+              />
+            </>
+          )}
+        </ContextMenu>
+      )}
       {editTarget && (
         <EditDialog target={editTarget} onClose={() => setEditTarget(null)} />
       )}
       {removed.length > 0 && (
         <UndoToast removed={removed} onUndo={undo} onDismiss={dismiss} />
       )}
-      <ContentApp />
+      <ContentApp onRightClick={contextMenu.open} />
     </div>
   );
 }

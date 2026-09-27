@@ -14,7 +14,14 @@ import { Canvas } from "./canvas";
 import { Overlay } from "./overlay";
 import { Piemenu } from "./piemenu";
 
-export const App = () => {
+/**
+ * @param onRightClick called when right button is released without gesture
+ */
+export const App = ({
+  onRightClick,
+}: {
+  onRightClick?: (e: MouseEvent) => void;
+} = {}) => {
   const [points, setPoints] = useState<Point[]>([]);
   const [piemenu, setPiemenu] = useState<{
     items: PiemenuItem[];
@@ -113,6 +120,9 @@ export const App = () => {
 
       if (directions.length === 0) {
         clearPoints();
+        if (piemenu === null) {
+          onRightClick?.(e);
+        }
         return;
       }
 
@@ -138,7 +148,7 @@ export const App = () => {
         });
       }
     },
-    [points, clearPoints],
+    [points, clearPoints, piemenu, onRightClick],
   );
 
   useEffect(() => {

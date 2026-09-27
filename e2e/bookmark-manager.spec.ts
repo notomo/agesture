@@ -200,6 +200,72 @@ test.describe("bookmark manager", () => {
     await expect(row(page, "new folder")).toBeVisible();
   });
 
+  test("deletes from row context menu", async ({ page, background }) => {
+    await row(page, "b").click({ button: "right" });
+    const menu = page.getByRole("menu");
+    await expect(menu.getByRole("menuitem")).toHaveText([
+      "Edit",
+      "Copy URL",
+      "Delete",
+    ]);
+    await menu.getByRole("menuitem", { name: "Delete" }).click();
+
+    await expect(menu).toBeHidden();
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "a", "c", "d"]);
+  });
+
+  test("adds folder from context menu outside rows", async ({
+    page,
+    background,
+  }) => {
+    const list = await bookmarkList(page).boundingBox();
+    if (!list) {
+      throw new Error("list is not visible");
+    }
+    await page.mouse.click(list.x + list.width / 2, list.y + list.height + 40, {
+      button: "right",
+    });
+    const menu = page.getByRole("menu");
+    await expect(menu.getByRole("menuitem")).toHaveText([
+      "Add bookmark",
+      "Add folder",
+    ]);
+    await menu.getByRole("menuitem", { name: "Add folder" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Add folder" });
+    await dialog.getByLabel("Name").fill("new folder");
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect
+      .poll(async () => (await getChildren(background, barId)).at(-1))
+      .toEqual({ title: "new folder" });
+  });
+
+  test("closes context menu by Escape", async ({ page }) => {
+    await row(page, "a").click({ button: "right" });
+    await expect(page.getByRole("menu")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("menu")).toBeHidden();
+  });
+
+  test("does not show context menu after gesture", async ({ page }) => {
+    const b = await row(page, "b").boundingBox();
+    if (!b) {
+      throw new Error("row is not visible");
+    }
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2 + 100, {
+      steps: 5,
+    });
+    await page.mouse.up({ button: "right" });
+
+    await expect(page.getByRole("menu")).toHaveCount(0);
+  });
+
   test("selects by rect and deletes by keyboard", async ({
     page,
     background,

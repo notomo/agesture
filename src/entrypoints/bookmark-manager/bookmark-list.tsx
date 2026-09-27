@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { isEditable } from "@/src/feature/bookmark-edit";
 import { type BookmarkNode, isFolder } from "@/src/feature/bookmark-path";
 import { cn } from "@/src/lib/tailwind";
 import { type DragAndDrop, dropIndicatorClass } from "./folder-tree";
 import { FolderIcon, MoreIcon } from "./icons";
+import { DropdownMenu, MenuItem, useMenuDismiss } from "./menu";
 import { BOOKMARK_ID_ATTRIBUTE } from "./selection";
 
 function faviconUrl(pageUrl: string) {
@@ -61,22 +62,37 @@ const BookmarkLink = ({
   );
 };
 
-const MenuItem = ({
-  label,
-  onClick,
+/**
+ * Items shared by the row "More actions" menu and the row context menu.
+ */
+export const BookmarkMenuItems = ({
+  node,
+  onEdit,
+  onRemove,
+  onClose,
 }: {
-  label: string;
-  onClick: () => void;
-}) => (
-  <button
-    type="button"
-    role="menuitem"
-    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-    onClick={onClick}
-  >
-    {label}
-  </button>
-);
+  node: BookmarkNode;
+  onEdit: (node: BookmarkNode) => void;
+  onRemove: (node: BookmarkNode) => void;
+  onClose: () => void;
+}) => {
+  const select = (action: () => void) => () => {
+    onClose();
+    action();
+  };
+  return (
+    <>
+      <MenuItem label="Edit" onClick={select(() => onEdit(node))} />
+      {node.url && (
+        <MenuItem
+          label="Copy URL"
+          onClick={select(() => navigator.clipboard.writeText(node.url ?? ""))}
+        />
+      )}
+      <MenuItem label="Delete" onClick={select(() => onRemove(node))} />
+    </>
+  );
+};
 
 const RowMenu = ({
   node,
@@ -89,37 +105,8 @@ const RowMenu = ({
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const handleMouseDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // not to clear selection
-        e.stopPropagation();
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("keydown", handleKeyDown, {
-        capture: true,
-      });
-    };
-  }, [open]);
-
-  const select = (action: () => void) => () => {
-    setOpen(false);
-    action();
-  };
+  const close = useCallback(() => setOpen(false), []);
+  useMenuDismiss({ ref, open, onClose: close });
 
   return (
     <div ref={ref} className="relative shrink-0">
@@ -134,21 +121,14 @@ const RowMenu = ({
         <MoreIcon />
       </button>
       {open && (
-        <div
-          role="menu"
-          className="absolute top-full right-0 z-10 w-40 rounded bg-white py-1 shadow-lg ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10"
-        >
-          <MenuItem label="Edit" onClick={select(() => onEdit(node))} />
-          {node.url && (
-            <MenuItem
-              label="Copy URL"
-              onClick={select(() =>
-                navigator.clipboard.writeText(node.url ?? ""),
-              )}
-            />
-          )}
-          <MenuItem label="Delete" onClick={select(() => onRemove(node))} />
-        </div>
+        <DropdownMenu>
+          <BookmarkMenuItems
+            node={node}
+            onEdit={onEdit}
+            onRemove={onRemove}
+            onClose={close}
+          />
+        </DropdownMenu>
       )}
     </div>
   );

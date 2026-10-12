@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { type BookmarkNode, isFolder } from "@/src/feature/bookmark-path";
 import { cn } from "@/src/lib/tailwind";
 import type { DropTarget, useBookmarkDragAndDrop } from "./edit";
@@ -29,6 +30,8 @@ export function dropIndicatorClass({
   }
 }
 
+const EXPAND_ON_DRAG_HOVER_MS = 700;
+
 export const FolderTreeItem = ({
   node,
   depth,
@@ -37,6 +40,7 @@ export const FolderTreeItem = ({
   folderHrefs,
   dnd,
   onToggle,
+  onExpand,
   onOpenFolder,
 }: {
   node: BookmarkNode;
@@ -46,11 +50,23 @@ export const FolderTreeItem = ({
   folderHrefs: ReadonlyMap<string, string>;
   dnd: DragAndDrop;
   onToggle: (id: string) => void;
+  onExpand: (id: string) => void;
   onOpenFolder: () => void;
 }) => {
   const childFolders = (node.children ?? []).filter(isFolder);
   const expanded = expandedIds.has(node.id);
   const selected = node.id === selectedId;
+
+  // expand folder hovered for a while during drag so that its children can be drop targets
+  const dragHovered = dnd.dropTarget?.id === node.id;
+  const expandable = !expanded && childFolders.length > 0;
+  useEffect(() => {
+    if (!dragHovered || !expandable) {
+      return;
+    }
+    const timer = setTimeout(() => onExpand(node.id), EXPAND_ON_DRAG_HOVER_MS);
+    return () => clearTimeout(timer);
+  }, [dragHovered, expandable, node.id, onExpand]);
 
   return (
     <li>
@@ -107,6 +123,7 @@ export const FolderTreeItem = ({
               folderHrefs={folderHrefs}
               dnd={dnd}
               onToggle={onToggle}
+              onExpand={onExpand}
               onOpenFolder={onOpenFolder}
             />
           ))}

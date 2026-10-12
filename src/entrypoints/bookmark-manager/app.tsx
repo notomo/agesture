@@ -236,6 +236,10 @@ export function App() {
     });
   }, []);
 
+  const expand = useCallback((id: string) => {
+    setExpandedIds((prev) => (prev.has(id) ? prev : new Set([...prev, id])));
+  }, []);
+
   // folders are links so that link gestures (e.g. openLink) work on them
   const folderHrefs = useMemo(() => {
     const hrefs = new Map<string, string>();
@@ -346,6 +350,7 @@ export function App() {
                 folderHrefs={folderHrefs}
                 dnd={dnd}
                 onToggle={toggle}
+                onExpand={expand}
                 onOpenFolder={clearQuery}
               />
             ))}

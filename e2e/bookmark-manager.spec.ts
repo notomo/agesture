@@ -401,6 +401,42 @@ test.describe("bookmark manager", () => {
     await expect(work).toBeVisible();
   });
 
+  test("expands tree folder hovered while dragging", async ({
+    page,
+    background,
+  }) => {
+    const innerId = await background.evaluate(async (parentId) => {
+      const work = (await chrome.bookmarks.getChildren(parentId)).find(
+        (x) => x.title === "work",
+      );
+      if (!work) {
+        throw new Error("work is not found");
+      }
+      return (
+        await chrome.bookmarks.create({ parentId: work.id, title: "inner" })
+      ).id;
+    }, barId);
+    const inner = treeFolder(page, "inner");
+    await expect(
+      page.getByRole("button", { name: "Expand work" }),
+    ).toBeVisible();
+    await expect(inner).toBeHidden();
+
+    await row(page, "a").hover();
+    await page.mouse.down();
+    await treeFolder(page, "work").hover();
+    // keep hovering so that dragover fires until the folder expands
+    await expect(async () => {
+      await treeFolder(page, "work").hover({ position: { x: 10, y: 10 } });
+      await expect(inner).toBeVisible({ timeout: 100 });
+    }).toPass();
+    await inner.hover();
+    await inner.hover({ position: { x: 10, y: 10 } });
+    await page.mouse.up();
+
+    await expect.poll(() => getChildTitles(background, innerId)).toEqual(["a"]);
+  });
+
   test("aligns search box center with list center", async ({ page }) => {
     const search = await page
       .getByPlaceholder(/Search bookmarks/)

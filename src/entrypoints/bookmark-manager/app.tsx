@@ -359,7 +359,7 @@ export function App() {
         {/* both-edges gutter keeps the list centered same as search box even with scrollbar */}
         <main
           ref={mainRef}
-          className="min-w-0 flex-1 select-none overflow-y-auto p-4 [scrollbar-gutter:stable_both-edges]"
+          className="min-w-0 flex-1 select-none overflow-y-auto px-4 pb-4 [scrollbar-gutter:stable_both-edges]"
           onMouseDown={rectSelection.onMouseDown}
         >
           {roots && !query && !selectedFolder ? (
@@ -368,7 +368,7 @@ export function App() {
             </p>
           ) : (
             <div className="mx-auto max-w-4xl">
-              <div className="flex h-10 items-center gap-2 px-1">
+              <div className="sticky top-0 z-10 flex h-14 items-center gap-2 bg-gray-50 px-1 pt-4 dark:bg-gray-900">
                 <h2 className="min-w-0 flex-1 truncate text-gray-600 text-sm dark:text-gray-400">
                   {query
                     ? `Search results for "${query}"`

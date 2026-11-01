@@ -19,7 +19,7 @@ export const ActionNameDisplay = ({
         top: position.y + 30,
       }}
     >
-      <span className="rounded-md border-2 border-gray-700 bg-gray-900/90 p-4 font-bold font-sans text-4xl text-gray-50">
+      <span className="rounded-md border-2 border-gray-700 bg-gray-900/90 p-4 font-sans text-4xl font-bold text-gray-50">
         {actionName}
       </span>
     </div>

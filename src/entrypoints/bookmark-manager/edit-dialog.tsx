@@ -128,12 +128,12 @@ export const EditDialog = ({
             />
           </label>
         )}
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded px-4 py-2 text-blue-600 text-sm hover:bg-gray-100 dark:text-blue-400 dark:hover:bg-gray-700"
+            className="rounded px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:text-blue-400 dark:hover:bg-gray-700"
           >
             Cancel
           </button>

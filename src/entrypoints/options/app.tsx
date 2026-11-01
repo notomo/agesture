@@ -25,7 +25,7 @@ export function App() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="mb-4 font-bold text-2xl">Gesture Setting</h1>
+      <h1 className="mb-4 text-2xl font-bold">Gesture Setting</h1>
 
       <div className="mb-4">
         <label htmlFor="setting-json" className="mb-2 block font-medium">
@@ -43,7 +43,7 @@ export function App() {
       {saveResult.message && (
         <div
           className={cn(
-            "mb-4 whitespace-pre-wrap rounded p-2",
+            "mb-4 rounded p-2 whitespace-pre-wrap",
             saveResult.isError
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700",
@@ -64,7 +64,7 @@ export function App() {
       </div>
 
       <div className="mt-8 rounded bg-gray-100 p-4">
-        <h2 className="mb-2 font-bold text-xl">Example</h2>
+        <h2 className="mb-2 text-xl font-bold">Example</h2>
         <pre className="font-mono text-sm">
           {JSON.stringify(DEFAULT_SETTING, null, 2)}
         </pre>

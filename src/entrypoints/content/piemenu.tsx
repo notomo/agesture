@@ -122,8 +122,8 @@ const PiemenuSector = ({
       className={cn(
         "transition-all duration-150",
         isHighlighted
-          ? "fill-blue-500 stroke-1 stroke-blue-400"
-          : "fill-gray-600 stroke-1 stroke-gray-500",
+          ? "fill-blue-500 stroke-blue-400 stroke-1"
+          : "fill-gray-600 stroke-gray-500 stroke-1",
       )}
     />
   );
@@ -156,7 +156,7 @@ const PiemenuLabel = ({
     >
       <span
         className={cn(
-          "select-none rounded-md px-3 py-1 font-sans font-semibold text-white text-xl transition-all duration-150",
+          "rounded-md px-3 py-1 font-sans text-xl font-semibold text-white transition-all duration-150 select-none",
         )}
       >
         {item.label}

@@ -41,7 +41,7 @@
         }
       },
       "nursery": {
-        "useSortedClasses": "warn"
+        "useTailwindSortedClasses": "warn"
       }
     }
   },

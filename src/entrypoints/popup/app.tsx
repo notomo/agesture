@@ -1,7 +1,7 @@
 export function App() {
   return (
     <div className="rounded border border-gray-300 bg-gray-50 px-6 py-4 text-center">
-      <h1 className="font-bold text-2xl">agesture</h1>
+      <h1 className="text-2xl font-bold">agesture</h1>
       <div className="inline-block text-left">
         <div>
           <button
@@ -11,7 +11,7 @@ export function App() {
                 url: browser.runtime.getURL("/bookmark-manager.html"),
               });
             }}
-            className="whitespace-nowrap p-2 text-blue-500 text-xl underline"
+            className="p-2 text-xl whitespace-nowrap text-blue-500 underline"
           >
             ★ Bookmarks
           </button>
@@ -22,7 +22,7 @@ export function App() {
             onClick={() => {
               browser.runtime.openOptionsPage();
             }}
-            className="whitespace-nowrap p-2 text-blue-500 text-xl underline"
+            className="p-2 text-xl whitespace-nowrap text-blue-500 underline"
           >
             ⚙ Setting
           </button>

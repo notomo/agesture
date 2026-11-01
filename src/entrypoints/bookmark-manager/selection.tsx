@@ -69,7 +69,7 @@ export function useRectSelection({
 
 export const SelectionRect = ({ rect }: { rect: Rect }) => (
   <div
-    className="pointer-events-none fixed z-50 border border-blue-500 border-dashed bg-blue-500/10"
+    className="pointer-events-none fixed z-50 border border-dashed border-blue-500 bg-blue-500/10"
     style={{
       left: rect.left,
       top: rect.top,

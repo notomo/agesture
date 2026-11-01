@@ -2,11 +2,11 @@ name: ci
 on:
   push:
     branches:
-      - '*'
+      - "*"
   pull_request:
 
 env:
-  NODE_VERSION: '24'
+  NODE_VERSION: "24"
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - run: npm ci
 
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - run: npm ci
       - run: npx playwright install --with-deps chromium

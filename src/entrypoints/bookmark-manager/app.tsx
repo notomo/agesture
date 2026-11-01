@@ -320,7 +320,7 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <header className="flex h-14 shrink-0 items-center border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-800">
+      <header className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         {/* same width as nav so that search box is centered on the list */}
         <h1 className="w-64 shrink-0 px-4 text-xl">Bookmarks</h1>
         <div className="min-w-0 flex-1 px-4">
@@ -359,17 +359,17 @@ export function App() {
         {/* both-edges gutter keeps the list centered same as search box even with scrollbar */}
         <main
           ref={mainRef}
-          className="min-w-0 flex-1 select-none overflow-y-auto px-4 pb-4 [scrollbar-gutter:stable_both-edges]"
+          className="min-w-0 flex-1 [scrollbar-gutter:stable_both-edges] overflow-y-auto px-4 pb-4 select-none"
           onMouseDown={rectSelection.onMouseDown}
         >
           {roots && !query && !selectedFolder ? (
-            <p className="p-5 text-gray-500 text-sm">
+            <p className="p-5 text-sm text-gray-500">
               Folder not found: {path}
             </p>
           ) : (
             <div className="mx-auto max-w-4xl">
               <div className="sticky top-0 z-10 flex h-14 items-center gap-2 bg-gray-50 px-1 pt-4 dark:bg-gray-900">
-                <h2 className="min-w-0 flex-1 truncate text-gray-600 text-sm dark:text-gray-400">
+                <h2 className="min-w-0 flex-1 truncate text-sm text-gray-600 dark:text-gray-400">
                   {query
                     ? `Search results for "${query}"`
                     : selectedFolder?.title}
@@ -415,7 +415,7 @@ export function App() {
                   />
                 ))}
                 {roots && listItems.length === 0 && (
-                  <li className="px-5 py-2 text-gray-500 text-sm">
+                  <li className="px-5 py-2 text-sm text-gray-500">
                     {query ? "No search results" : "No bookmarks"}
                   </li>
                 )}
@@ -483,7 +483,7 @@ const HeaderButton = ({
     type="button"
     onClick={onClick}
     className={cn(
-      "flex items-center gap-1 rounded-full px-3 py-1 text-blue-600 text-sm hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800",
+      "flex items-center gap-1 rounded-full px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800",
       className,
     )}
   >

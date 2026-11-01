@@ -73,7 +73,7 @@ export const FolderTreeItem = ({
       <div
         className={cn(
           // select-none: not to select title text by double click
-          "flex h-9 select-none items-center rounded-r-full text-sm",
+          "flex h-9 items-center rounded-r-full text-sm select-none",
           selected
             ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200"
             : "hover:bg-gray-100 dark:hover:bg-gray-800",

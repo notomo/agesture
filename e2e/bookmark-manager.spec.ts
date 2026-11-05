@@ -357,6 +357,37 @@ test.describe("bookmark manager", () => {
     await expect(row(page, "a")).toBeHidden();
   });
 
+  test("updates search results on delete and undo", async ({ page }) => {
+    await page.getByPlaceholder(/Search bookmarks/).fill("example.com");
+    await expect(row(page, "c")).toBeVisible();
+
+    await row(page, "c").getByRole("button", { name: "More actions" }).click();
+    await page.getByRole("menuitem", { name: "Delete" }).click();
+
+    await expect(page.getByText('Deleted "c"')).toBeVisible();
+    await expect(row(page, "c")).toBeHidden();
+    await expect(row(page, "a")).toBeVisible();
+
+    await page.getByRole("button", { name: "Undo" }).click();
+
+    await expect(row(page, "c")).toBeVisible();
+  });
+
+  test("updates search results on edit", async ({ page }) => {
+    await page.getByPlaceholder(/Search bookmarks/).fill("example.com");
+    await expect(row(page, "a")).toBeVisible();
+
+    await row(page, "a").getByRole("button", { name: "More actions" }).click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+    const dialog = page.getByRole("dialog", { name: "Edit bookmark" });
+    await dialog.getByLabel("Name").fill("renamed");
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(row(page, "renamed")).toBeVisible();
+    await expect(row(page, "a")).toBeHidden();
+  });
+
   test("shows shallow folders in tree by default", async ({ page }) => {
     await expect(treeFolder(page, "work")).toBeVisible();
   });

@@ -4,6 +4,25 @@ import {
   DEFAULT_FOLDER_PATH,
 } from "@/src/feature/bookmark-path";
 
+function subscribeBookmarkChanges(listener: () => void) {
+  const events = [
+    browser.bookmarks.onCreated,
+    browser.bookmarks.onRemoved,
+    browser.bookmarks.onChanged,
+    browser.bookmarks.onMoved,
+    browser.bookmarks.onChildrenReordered,
+    browser.bookmarks.onImportEnded,
+  ];
+  for (const event of events) {
+    event.addListener(listener);
+  }
+  return () => {
+    for (const event of events) {
+      event.removeListener(listener);
+    }
+  };
+}
+
 export function useBookmarkRoots() {
   const [roots, setRoots] = useState<BookmarkNode[] | null>(null);
 
@@ -13,23 +32,7 @@ export function useBookmarkRoots() {
       setRoots(tree.at(0)?.children ?? []);
     };
     load();
-
-    const events = [
-      browser.bookmarks.onCreated,
-      browser.bookmarks.onRemoved,
-      browser.bookmarks.onChanged,
-      browser.bookmarks.onMoved,
-      browser.bookmarks.onChildrenReordered,
-      browser.bookmarks.onImportEnded,
-    ];
-    for (const event of events) {
-      event.addListener(load);
-    }
-    return () => {
-      for (const event of events) {
-        event.removeListener(load);
-      }
-    };
+    return subscribeBookmarkChanges(load);
   }, []);
 
   return roots;
@@ -59,14 +62,20 @@ export function useSearchResults(query: string) {
       setResults([]);
       return;
     }
-    let canceled = false;
-    browser.bookmarks.search(query).then((nodes) => {
-      if (!canceled) {
+    let latestRequest = 0;
+    const load = async () => {
+      latestRequest += 1;
+      const request = latestRequest;
+      const nodes = await browser.bookmarks.search(query);
+      if (request === latestRequest) {
         setResults(nodes);
       }
-    });
+    };
+    load();
+    const unsubscribe = subscribeBookmarkChanges(load);
     return () => {
-      canceled = true;
+      latestRequest += 1;
+      unsubscribe();
     };
   }, [query]);
 

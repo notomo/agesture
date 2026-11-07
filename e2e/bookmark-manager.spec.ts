@@ -133,6 +133,87 @@ test.describe("bookmark manager", () => {
       .toEqual(["d", "work", "a", "b", "c"]);
   });
 
+  test("moves to top by dropping above list", async ({ page, background }) => {
+    await row(page, "c").dragTo(page.getByRole("heading", { level: 2 }));
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["c", "work", "a", "b", "d"]);
+  });
+
+  test("moves to top by dropping on page header", async ({
+    page,
+    background,
+  }) => {
+    await row(page, "c").dragTo(
+      page.getByRole("heading", { name: "Bookmarks", level: 1 }),
+    );
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["c", "work", "a", "b", "d"]);
+  });
+
+  test("moves to bottom by dropping below list", async ({
+    page,
+    background,
+  }) => {
+    const box = await bookmarkList(page).boundingBox();
+    if (!box) {
+      throw new Error("list is not visible");
+    }
+    await row(page, "a").hover();
+    await page.mouse.down();
+    await page.mouse.move(box.x + 10, box.y + box.height + 50, { steps: 5 });
+    await page.mouse.move(box.x + 10, box.y + box.height + 60);
+    await page.mouse.up();
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "b", "c", "d", "a"]);
+  });
+
+  test("reorders by dropping beside row", async ({ page, background }) => {
+    const box = await row(page, "c").boundingBox();
+    if (!box) {
+      throw new Error("row is not visible");
+    }
+    await row(page, "a").hover();
+    await page.mouse.down();
+    await page.mouse.move(box.x - 5, box.y + box.height * 0.9, { steps: 5 });
+    await page.mouse.move(box.x - 6, box.y + box.height * 0.9);
+    await page.mouse.up();
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["work", "b", "c", "a", "d"]);
+  });
+
+  test("does not drop on rows hidden under sticky header", async ({
+    page,
+    background,
+  }) => {
+    await page.setViewportSize({ width: 1000, height: 200 });
+    const heading = page.getByRole("heading", { level: 2 });
+    // hovering scrolls to the row at the bottom
+    await row(page, "d").hover();
+    await expect
+      .poll(() => page.getByRole("main").evaluate((x) => x.scrollTop))
+      .toBeGreaterThan(0);
+    await page.mouse.down();
+    await heading.hover();
+    await heading.hover({ position: { x: 10, y: 10 } });
+    await page.mouse.up();
+
+    expect(await getChildTitles(background, barId)).toEqual([
+      "work",
+      "a",
+      "b",
+      "c",
+      "d",
+    ]);
+  });
+
   test("moves into folder", async ({ page, background }) => {
     await dragTo({
       source: row(page, "b"),

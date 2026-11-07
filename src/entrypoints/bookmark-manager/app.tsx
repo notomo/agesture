@@ -12,7 +12,11 @@ import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { App as ContentApp } from "../content/app";
 import { BookmarkMenuItems, BookmarkRow, UndoToast } from "./bookmark-list";
-import { useBookmarkDragAndDrop, useRemoveWithUndo } from "./edit";
+import {
+  type DropRow,
+  useBookmarkDragAndDrop,
+  useRemoveWithUndo,
+} from "./edit";
 import { EditDialog, type EditTarget } from "./edit-dialog";
 import { FolderTreeItem } from "./folder-tree";
 import { useBookmarkRoots, useHashPath, useSearchResults } from "./hooks";
@@ -263,6 +267,34 @@ export function App() {
   );
   const dnd = useBookmarkDragAndDrop({ roots, getDragIds });
 
+  const listRef = useRef<HTMLUListElement>(null);
+  const listHeaderRef = useRef<HTMLDivElement>(null);
+  const findDropRow = useCallback(
+    (y: number): DropRow | undefined => {
+      const rows = [
+        ...(listRef.current?.querySelectorAll(`[${BOOKMARK_ID_ATTRIBUTE}]`) ??
+          []),
+      ];
+      const firstTop = rows.at(0)?.getBoundingClientRect().top;
+      const visibleTop = listHeaderRef.current?.getBoundingClientRect().bottom;
+      if (firstTop === undefined || visibleTop === undefined) {
+        return undefined;
+      }
+      // rows scrolled under the sticky header cannot show the drop indicator
+      if (y < visibleTop && firstTop < visibleTop) {
+        return undefined;
+      }
+      const element =
+        rows.find((x) => y < x.getBoundingClientRect().bottom) ?? rows.at(-1);
+      const id = element?.getAttribute(BOOKMARK_ID_ATTRIBUTE);
+      const node = listItems.find((x) => x.id === id);
+      return element && node ? { node, element } : undefined;
+    },
+    [listItems],
+  );
+  // reordering search results across folders is confusing
+  const dropZoneProps = query ? undefined : dnd.dropZoneProps(findDropRow);
+
   const rectSelection = useRectSelection({ selectedIds, setSelectedIds });
 
   const removeOne = useCallback(
@@ -320,7 +352,10 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <header className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+      <header
+        className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+        {...dropZoneProps}
+      >
         {/* same width as nav so that search box is centered on the list */}
         <h1 className="w-64 shrink-0 px-4 text-xl">Bookmarks</h1>
         <div className="min-w-0 flex-1 px-4">
@@ -361,6 +396,7 @@ export function App() {
           ref={mainRef}
           className="min-w-0 flex-1 [scrollbar-gutter:stable_both-edges] overflow-y-auto px-4 pb-4 select-none"
           onMouseDown={rectSelection.onMouseDown}
+          {...dropZoneProps}
         >
           {roots && !query && !selectedFolder ? (
             <p className="p-5 text-sm text-gray-500">
@@ -368,7 +404,10 @@ export function App() {
             </p>
           ) : (
             <div className="mx-auto max-w-4xl">
-              <div className="sticky top-0 z-10 flex h-14 items-center gap-2 bg-gray-50 px-1 pt-4 dark:bg-gray-900">
+              <div
+                ref={listHeaderRef}
+                className="sticky top-0 z-10 flex h-14 items-center gap-2 bg-gray-50 px-1 pt-4 dark:bg-gray-900"
+              >
                 <h2 className="min-w-0 flex-1 truncate text-sm text-gray-600 dark:text-gray-400">
                   {query
                     ? `Search results for "${query}"`
@@ -398,6 +437,7 @@ export function App() {
                 )}
               </div>
               <ul
+                ref={listRef}
                 aria-label="Bookmarks"
                 className="rounded-lg bg-white py-2 shadow dark:bg-gray-800"
               >

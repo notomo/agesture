@@ -20,6 +20,28 @@ export type DropTarget = {
   position: DropPosition;
 };
 
+type DropCandidate = {
+  node: BookmarkNode;
+  position: DropPosition;
+};
+
+export type DropRow = {
+  node: BookmarkNode;
+  element: Element;
+};
+
+function getRowDropPosition({
+  node,
+  element,
+  y,
+}: DropRow & { y: number }): DropPosition {
+  const rect = element.getBoundingClientRect();
+  return getDropPosition({
+    ratio: (y - rect.top) / rect.height,
+    target: node,
+  });
+}
+
 /**
  * @param getDragIds returns ids moved together when the node is dragged (e.g. selected nodes)
  */
@@ -78,24 +100,27 @@ export function useBookmarkDragAndDrop({
     [reset, getDragIds],
   );
 
-  const dropProps = useCallback(
-    (node: BookmarkNode, { intoOnly }: { intoOnly: boolean }) => {
-      const getPosition = (e: React.DragEvent): DropPosition => {
-        if (intoOnly) {
-          return "into";
+  const dropHandlers = useCallback(
+    (getTarget: (e: React.DragEvent) => DropCandidate | undefined) => {
+      const resolve = (e: React.DragEvent) => {
+        const candidate = getTarget(e);
+        if (!candidate) {
+          return undefined;
         }
-        const rect = e.currentTarget.getBoundingClientRect();
-        return getDropPosition({
-          ratio: (e.clientY - rect.top) / rect.height,
-          target: node,
-        });
+        const destination = resolveDestination(
+          candidate.node,
+          candidate.position,
+        );
+        return destination ? { ...candidate, destination } : undefined;
       };
       return {
         onDragOver: (e: React.DragEvent) => {
-          const position = getPosition(e);
-          if (!resolveDestination(node, position)) {
+          const resolved = resolve(e);
+          if (!resolved) {
+            setDropTarget(null);
             return;
           }
+          const { node, position } = resolved;
           e.preventDefault();
           e.stopPropagation();
           e.dataTransfer.dropEffect = "move";
@@ -105,29 +130,69 @@ export function useBookmarkDragAndDrop({
               : { id: node.id, position },
           );
         },
-        onDragLeave: (e: React.DragEvent) => {
-          if (e.currentTarget.contains(e.relatedTarget as Node | null)) {
-            return;
-          }
-          setDropTarget((prev) => (prev?.id === node.id ? null : prev));
-        },
         onDrop: async (e: React.DragEvent) => {
-          const destination = resolveDestination(node, getPosition(e));
-          if (!destination) {
+          const resolved = resolve(e);
+          if (!resolved) {
             return;
           }
           e.preventDefault();
           e.stopPropagation();
           const ids = draggingIds;
           reset();
-          await moveBookmarks({ ids, destination });
+          await moveBookmarks({ ids, destination: resolved.destination });
         },
       };
     },
     [resolveDestination, draggingIds, reset],
   );
 
-  return { dropTarget, dragProps, dropProps };
+  const dropProps = useCallback(
+    (node: BookmarkNode, { intoOnly }: { intoOnly: boolean }) => ({
+      ...dropHandlers((e) => ({
+        node,
+        position: intoOnly
+          ? "into"
+          : getRowDropPosition({
+              node,
+              element: e.currentTarget,
+              y: e.clientY,
+            }),
+      })),
+      onDragLeave: (e: React.DragEvent) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          return;
+        }
+        setDropTarget((prev) => (prev?.id === node.id ? null : prev));
+      },
+    }),
+    [dropHandlers],
+  );
+
+  /**
+   * Accepts drops outside of rows as drops on the row returned by findRow,
+   * so that dragging past the list edge does not lose the drop.
+   */
+  const dropZoneProps = useCallback(
+    (findRow: (y: number) => DropRow | undefined) => ({
+      ...dropHandlers((e) => {
+        const row = findRow(e.clientY);
+        return row
+          ? {
+              node: row.node,
+              position: getRowDropPosition({ ...row, y: e.clientY }),
+            }
+          : undefined;
+      }),
+      onDragLeave: (e: React.DragEvent) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setDropTarget(null);
+        }
+      },
+    }),
+    [dropHandlers],
+  );
+
+  return { dropTarget, dragProps, dropProps, dropZoneProps };
 }
 
 const UNDO_TIMEOUT_MS = 10000;

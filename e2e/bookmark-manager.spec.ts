@@ -65,6 +65,10 @@ function treeFolder(page: Page, title: string) {
     .getByRole("link", { name: title, exact: true });
 }
 
+async function scrollTop(page: Page) {
+  return await page.getByRole("main").evaluate((x) => x.scrollTop);
+}
+
 async function dragTo({
   source,
   target,
@@ -193,25 +197,65 @@ test.describe("bookmark manager", () => {
     page,
     background,
   }) => {
+    await background.evaluate(async (parentId) => {
+      for (let i = 0; i < 30; i++) {
+        await chrome.bookmarks.create({
+          parentId,
+          title: `extra${i}`,
+          url: `https://example.com/extra${i}`,
+        });
+      }
+    }, barId);
     await page.setViewportSize({ width: 1000, height: 200 });
+    const before = await getChildTitles(background, barId);
+
     const heading = page.getByRole("heading", { level: 2 });
-    // hovering scrolls to the row at the bottom
-    await row(page, "d").hover();
-    await expect
-      .poll(() => page.getByRole("main").evaluate((x) => x.scrollTop))
-      .toBeGreaterThan(0);
+    await row(page, "extra29").hover();
     await page.mouse.down();
     await heading.hover();
     await heading.hover({ position: { x: 10, y: 10 } });
     await page.mouse.up();
 
-    expect(await getChildTitles(background, barId)).toEqual([
-      "work",
-      "a",
-      "b",
-      "c",
-      "d",
-    ]);
+    expect(await scrollTop(page)).toBeGreaterThan(0);
+    expect(await getChildTitles(background, barId)).toEqual(before);
+  });
+
+  test("scrolls up while dragging above list and drops at top", async ({
+    page,
+    background,
+  }) => {
+    await page.setViewportSize({ width: 1000, height: 200 });
+    const title = page.getByRole("heading", { name: "Bookmarks", level: 1 });
+    await row(page, "d").hover();
+    await expect.poll(() => scrollTop(page)).toBeGreaterThan(0);
+
+    await page.mouse.down();
+    await title.hover();
+    await title.hover({ position: { x: 10, y: 10 } });
+    await expect.poll(() => scrollTop(page)).toBe(0);
+    // dragover after scrolling updates the drop target
+    await title.hover({ position: { x: 11, y: 10 } });
+    await page.mouse.up();
+
+    await expect
+      .poll(() => getChildTitles(background, barId))
+      .toEqual(["d", "work", "a", "b", "c"]);
+  });
+
+  test("scrolls down while dragging at bottom edge", async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 200 });
+    const box = await row(page, "work").boundingBox();
+    if (!box) {
+      throw new Error("row is not visible");
+    }
+    await row(page, "work").hover();
+    await page.mouse.down();
+    await page.mouse.move(box.x + 10, 180, { steps: 5 });
+    await page.mouse.move(box.x + 11, 180);
+
+    await expect.poll(() => scrollTop(page)).toBeGreaterThan(0);
+    await expect(row(page, "d")).toBeInViewport();
+    await page.mouse.up();
   });
 
   test("moves into folder", async ({ page, background }) => {

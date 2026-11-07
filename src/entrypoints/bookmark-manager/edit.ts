@@ -192,7 +192,13 @@ export function useBookmarkDragAndDrop({
     [dropHandlers],
   );
 
-  return { dropTarget, dragProps, dropProps, dropZoneProps };
+  return {
+    dragging: draggingIds.length > 0,
+    dropTarget,
+    dragProps,
+    dropProps,
+    dropZoneProps,
+  };
 }
 
 const UNDO_TIMEOUT_MS = 10000;

@@ -12,6 +12,7 @@ import type { Point } from "@/src/feature/direction";
 import { cn } from "@/src/lib/tailwind";
 import { App as ContentApp } from "../content/app";
 import { BookmarkMenuItems, BookmarkRow, UndoToast } from "./bookmark-list";
+import { useDragScroll } from "./drag-scroll";
 import {
   type DropRow,
   useBookmarkDragAndDrop,
@@ -341,6 +342,11 @@ export function App() {
   }, [addParentId]);
 
   const mainRef = useRef<HTMLElement>(null);
+  const dragScrollProps = useDragScroll({
+    containerRef: mainRef,
+    headerRef: listHeaderRef,
+    dragging: dnd.dragging,
+  });
   const contextMenu = useContextMenu({
     containerRef: mainRef,
     findNode: useCallback(
@@ -355,6 +361,7 @@ export function App() {
       <header
         className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
         {...dropZoneProps}
+        {...dragScrollProps}
       >
         {/* same width as nav so that search box is centered on the list */}
         <h1 className="w-64 shrink-0 px-4 text-xl">Bookmarks</h1>
@@ -397,6 +404,7 @@ export function App() {
           className="min-w-0 flex-1 [scrollbar-gutter:stable_both-edges] overflow-y-auto px-4 pb-4 select-none"
           onMouseDown={rectSelection.onMouseDown}
           {...dropZoneProps}
+          {...dragScrollProps}
         >
           {roots && !query && !selectedFolder ? (
             <p className="p-5 text-sm text-gray-500">

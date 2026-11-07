@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMoveDestination,
   canMove,
+  getDragScrollDelta,
   getDropPosition,
   normalizeUrl,
   sortForRestore,
@@ -67,6 +68,23 @@ describe("getDropPosition", () => {
     expect(getDropPosition({ ratio: 0.1, target: folder })).toBe("before");
     expect(getDropPosition({ ratio: 0.5, target: folder })).toBe("into");
     expect(getDropPosition({ ratio: 0.9, target: folder })).toBe("after");
+  });
+});
+
+describe("getDragScrollDelta", () => {
+  const area = { top: 100, bottom: 500 };
+
+  it("scrolls up above the top", () => {
+    expect(getDragScrollDelta({ ...area, y: 99 })).toBeLessThan(0);
+  });
+
+  it("scrolls down in the bottom edge", () => {
+    expect(getDragScrollDelta({ ...area, y: 461 })).toBeGreaterThan(0);
+  });
+
+  it("does not scroll between them", () => {
+    expect(getDragScrollDelta({ ...area, y: 100 })).toBe(0);
+    expect(getDragScrollDelta({ ...area, y: 460 })).toBe(0);
   });
 });
 

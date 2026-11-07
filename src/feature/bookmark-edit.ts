@@ -28,6 +28,33 @@ export function getDropPosition({
   return "into";
 }
 
+const DRAG_SCROLL_BOTTOM_EDGE_PX = 40;
+const DRAG_SCROLL_PX_PER_FRAME = 8;
+
+/**
+ * @param y cursor position
+ * @param top upper limit of the visible rows
+ * @param bottom lower limit of the visible rows
+ * @returns scroll amount per frame. The bottom has an edge area because cursor cannot go below the window.
+ */
+export function getDragScrollDelta({
+  y,
+  top,
+  bottom,
+}: {
+  y: number;
+  top: number;
+  bottom: number;
+}): number {
+  if (y < top) {
+    return -DRAG_SCROLL_PX_PER_FRAME;
+  }
+  if (y > bottom - DRAG_SCROLL_BOTTOM_EDGE_PX) {
+    return DRAG_SCROLL_PX_PER_FRAME;
+  }
+  return 0;
+}
+
 export type MoveDestination = {
   parentId: string;
   index?: number;

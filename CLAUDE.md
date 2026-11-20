@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 agesture is a browser extension for mouse gestures built with:
+
 - **WXT Framework**: Modern web extension framework with TypeScript support
 - **React**: UI components with React 19 and shadow DOM isolation
 - **Valibot**: Runtime schema validation and type safety
@@ -34,6 +35,7 @@ agesture is a browser extension for mouse gestures built with:
 ### Action System
 
 Actions are defined in `src/feature/action.ts` with:
+
 - Schema validation using Valibot
 - Type-safe execution with `ActionContext`
 - Support for piemenu hierarchical actions
